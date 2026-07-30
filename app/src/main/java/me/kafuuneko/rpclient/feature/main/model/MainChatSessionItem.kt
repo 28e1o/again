@@ -8,5 +8,6 @@ data class MainChatSessionItem(
     val title: String,
     val preview: String,
     val messageCount: Int,
-    val updatedAt: String
+    val updatedAt: String,
+    val isPinned: Boolean = false
 )

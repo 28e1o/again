@@ -703,4 +703,7 @@
     <string name="generation_error_http">Penyedia model mengembalikan HTTP %1$d.</string>
     <string name="generation_error_network">Tidak dapat menjangkau penyedia model. Periksa jaringan dan coba lagi.</string>
     <string name="generation_error_empty_response">Model mengembalikan respons kosong.</string>
+    <string name="pin">Sematkan</string>
+    <string name="pinned">Disematkan</string>
+    <string name="reply">Balas</string>
 </resources>

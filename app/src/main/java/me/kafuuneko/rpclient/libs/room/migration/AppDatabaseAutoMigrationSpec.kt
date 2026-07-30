@@ -18,3 +18,10 @@ class AppDatabaseAutoMigration1To2Spec : AutoMigrationSpec {
         db.execSQL("UPDATE lorebooks SET tokenBudget = 0 WHERE tokenBudget = 25")
     }
 }
+
+/**
+ * v2→v3 自动迁移：为 chat_sessions 和 group_chat_sessions 添加 isPinned 列。
+ *
+ * Room 能自动处理带默认值的新增列，本 spec 为空占位。
+ */
+class AppDatabaseAutoMigration2To3Spec : AutoMigrationSpec

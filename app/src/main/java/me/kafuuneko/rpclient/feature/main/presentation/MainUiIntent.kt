@@ -113,4 +113,6 @@ sealed class MainUiIntent {
     data object ConfirmDeleteSelected : MainUiIntent()
 
     data object DismissDialog : MainUiIntent()
+
+    data class TogglePinSession(val session: MainSessionSelection) : MainUiIntent()
 }

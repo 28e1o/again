@@ -7,5 +7,6 @@ data class MainGroupChatSessionItem(
     val memberNames: String,
     val preview: String,
     val messageCount: Int,
-    val updatedAt: String
+    val updatedAt: String,
+    val isPinned: Boolean = false
 )

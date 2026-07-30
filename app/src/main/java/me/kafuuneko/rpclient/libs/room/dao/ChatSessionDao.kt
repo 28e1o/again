@@ -122,6 +122,10 @@ interface ChatSessionDao : MutableDao<ChatSession> {
     @Query("UPDATE chat_sessions SET autoSummaryPaused = :paused WHERE id = :id")
     suspend fun updateAutoSummaryPaused(id: Long, paused: Boolean)
 
+    /** 固定或取消固定指定会话。 */
+    @Query("UPDATE chat_sessions SET isPinned = :pinned WHERE id = :id")
+    suspend fun updateSessionPinned(id: Long, pinned: Boolean)
+
     /**
      * 根据会话 id 删除会话。
      *

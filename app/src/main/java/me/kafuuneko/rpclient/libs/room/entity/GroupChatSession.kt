@@ -30,7 +30,8 @@ data class GroupChatSession(
     val includeMutedCards: Boolean = false,
     val autoModeEnabled: Boolean = false,
     val trimOtherSpeakers: Boolean = true,
-    val autoSummaryPaused: Boolean = false
+    val autoSummaryPaused: Boolean = false,
+    val isPinned: Boolean = false
 ) {
     /** 本轮发言者选择策略。 */
     enum class ActivationStrategy {

@@ -42,7 +42,8 @@ data class ChatConversationState(
     val generationState: ChatGenerationState = ChatGenerationState.Idle,
     val expandedThinkBlockIds: Set<String> = emptySet(),
     val editingMessageId: String? = null,
-    val editingMessageDraft: String = ""
+    val editingMessageDraft: String = "",
+    val replyToMessage: ChatMessageUiModel? = null
 )
 
 /** 单聊世界书选择与展开状态。 */

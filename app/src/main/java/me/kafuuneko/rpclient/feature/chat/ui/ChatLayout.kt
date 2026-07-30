@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -86,6 +89,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.delay
 import me.kafuuneko.rpclient.R
 import me.kafuuneko.rpclient.feature.chat.model.ChatCharacterItem
@@ -192,6 +196,7 @@ private fun ChatNormal(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .navigationBarsPadding()
             .background(MaterialTheme.colorScheme.background)
     ) {
         CustomChatTopBar(
@@ -256,6 +261,7 @@ private fun ChatNormal(
             hasAssistantMessage = state.conversationState.messages.any {
                 it.role == MessageRole.Assistant
             },
+            replyToMessage = state.conversationState.replyToMessage,
             emit = emit
         )
     }
@@ -635,9 +641,26 @@ private fun MessageBubble(
 ) {
     val isUser = message.role == MessageRole.User
     var showActions by remember(message.id) { mutableStateOf(false) }
+    var swipeOffset by remember(message.id) { mutableStateOf(0f) }
+    val density = LocalDensity.current
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(message.id) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (swipeOffset > 120f) {
+                            ChatUiIntent.ReplyToMessage(message.id).emit()
+                        }
+                        swipeOffset = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        swipeOffset = (swipeOffset + dragAmount).coerceAtLeast(0f)
+                    }
+                )
+            }
+            .offset { IntOffset(x = (swipeOffset * 0.3f).toInt(), y = 0) },
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
@@ -961,6 +984,7 @@ private fun ChatInputBar(
     draft: String,
     isGenerating: Boolean,
     hasAssistantMessage: Boolean,
+    replyToMessage: ChatMessageUiModel? = null,
     emit: ChatUiIntent.() -> Unit
 ) {
     var quickActionsExpanded by remember { mutableStateOf(false) }
@@ -970,6 +994,55 @@ private fun ChatInputBar(
         shadowElevation = 4.dp
     ) {
         Column {
+            if (replyToMessage != null) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.Send,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.reply),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = replyToMessage.content.take(80),
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        IconButton(onClick = { ChatUiIntent.ClearReplyMessage.emit() }) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.cancel),
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        .height(0.8.dp)
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

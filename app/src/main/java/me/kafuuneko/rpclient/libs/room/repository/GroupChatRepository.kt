@@ -361,6 +361,11 @@ class GroupChatRepository(
         mSessionDao.deleteById(id)
     }
 
+    /** 固定或取消固定指定群聊。 */
+    suspend fun updateSessionPinned(id: Long, pinned: Boolean) {
+        mSessionDao.updateSessionPinned(id, pinned)
+    }
+
     suspend fun getLatestMessage(sessionId: Long): GroupChatMessage? {
         return mMessageDao.getLatestMessage(sessionId)
     }

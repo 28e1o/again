@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Compress
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.DataObject
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Groups
@@ -159,6 +160,7 @@ private fun MainNormal(
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                         .navigationBarsPadding(),
                     selectedCount = uiState.homeState.selectedSessions.size,
+                    selectedSessions = uiState.homeState.selectedSessions,
                     emit = emit
                 )
             } else {
@@ -222,6 +224,7 @@ private fun MainBottomBar(
 private fun MultiSelectBottomBar(
     modifier: Modifier = Modifier,
     selectedCount: Int,
+    selectedSessions: Set<MainSessionSelection> = emptySet(),
     emit: MainUiIntent.() -> Unit
 ) {
     Surface(
@@ -255,6 +258,17 @@ private fun MultiSelectBottomBar(
                 label = stringResource(R.string.delete),
                 modifier = Modifier.weight(1f),
                 enabled = selectedCount > 0
+            )
+            MainBottomBarItem(
+                selected = false,
+                onClick = {
+                    val session = selectedSessions.firstOrNull() ?: return@MainBottomBarItem
+                    MainUiIntent.TogglePinSession(session).emit()
+                },
+                icon = Icons.Rounded.PushPin,
+                label = stringResource(R.string.pin),
+                modifier = Modifier.weight(1f),
+                enabled = selectedCount == 1
             )
         }
     }
@@ -553,6 +567,7 @@ private fun HomePage(
                         ),
                         multiSelectMode = state.multiSelectMode,
                         selected = selection in state.selectedSessions,
+                        isPinned = session.isPinned,
                         onClick = {
                             if (state.multiSelectMode) {
                                 MainUiIntent.ToggleSessionSelection(selection).emit()
@@ -610,6 +625,7 @@ private fun HomePage(
                 ),
                 multiSelectMode = state.multiSelectMode,
                 selected = selection in state.selectedSessions,
+                isPinned = session.isPinned,
                 onClick = {
                     if (state.multiSelectMode) {
                         MainUiIntent.ToggleSessionSelection(selection).emit()
@@ -638,6 +654,7 @@ private fun HomeSessionCard(
     metadata: List<String>,
     multiSelectMode: Boolean = false,
     selected: Boolean = false,
+    isPinned: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {}
 ) {
@@ -698,12 +715,23 @@ private fun HomeSessionCard(
                     RpIconBubble(icon)
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isPinned) {
+                                Icon(
+                                    Icons.Rounded.PushPin,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                         Text(
                             text = preview,
                             style = MaterialTheme.typography.bodySmall,

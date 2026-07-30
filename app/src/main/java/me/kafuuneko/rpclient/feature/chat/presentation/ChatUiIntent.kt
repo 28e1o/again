@@ -83,4 +83,8 @@ sealed class ChatUiIntent {
     data class DeleteMessageClick(val messageId: String) : ChatUiIntent()
 
     data class ConfirmDeleteMessage(val messageId: String) : ChatUiIntent()
+
+    data class ReplyToMessage(val messageId: String) : ChatUiIntent()
+
+    data object ClearReplyMessage : ChatUiIntent()
 }

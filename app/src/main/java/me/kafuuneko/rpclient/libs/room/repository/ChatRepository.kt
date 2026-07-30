@@ -358,6 +358,11 @@ class ChatRepository(
         mChatSessionDao.updateAutoSummaryPaused(id, paused)
     }
 
+    /** 固定或取消固定指定会话。 */
+    suspend fun updateSessionPinned(id: Long, pinned: Boolean) {
+        mChatSessionDao.updateSessionPinned(id, pinned)
+    }
+
     /**
      * 删除会话。
      *

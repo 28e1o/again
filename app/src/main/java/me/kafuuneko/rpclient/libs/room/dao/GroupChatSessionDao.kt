@@ -23,4 +23,8 @@ interface GroupChatSessionDao : MutableDao<GroupChatSession> {
     /** 删除会话；关联成员、消息和摘要由外键级联清理。 */
     @Query("DELETE FROM group_chat_sessions WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    /** 固定或取消固定指定群聊。 */
+    @Query("UPDATE group_chat_sessions SET isPinned = :pinned WHERE id = :id")
+    suspend fun updateSessionPinned(id: Long, pinned: Boolean)
 }

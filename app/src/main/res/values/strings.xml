@@ -704,4 +704,7 @@
     <string name="generation_error_http">The model provider returned HTTP %1$d.</string>
     <string name="generation_error_network">Could not reach the model provider. Check the network and try again.</string>
     <string name="generation_error_empty_response">The model returned an empty response.</string>
+    <string name="pin">Pin</string>
+    <string name="pinned">Pinned</string>
+    <string name="reply">Reply</string>
 </resources>

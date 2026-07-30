@@ -179,8 +179,12 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
     private suspend fun onSendMessage() {
         val uiState = getOrNull<ChatUiState.Normal>() ?: return
         val sessionId = mSessionId ?: return
-        val rawInput = uiState.conversationState.inputDraft.trim()
+        val replyTo = uiState.conversationState.replyToMessage
+        var rawInput = uiState.conversationState.inputDraft.trim()
             .ifBlank { AppModel.replaceEmptyMessagePrompt.trim() }
+        if (replyTo != null && rawInput.isNotBlank()) {
+            rawInput = "> ${replyTo.content.take(80)}\n\n$rawInput"
+        }
         if (rawInput.isBlank()) {
             continueLastAssistantMessage(sessionId)
             return
@@ -203,7 +207,8 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
                     sessionId = sessionId,
                     inputDraft = "",
                     isExpanded = uiState.lorebookState.isExpanded,
-                    generationState = ChatGenerationState.Requesting
+                    generationState = ChatGenerationState.Requesting,
+                    replyToMessage = null
                 )
                 val built = withContext(Dispatchers.IO) { buildGenerationRequest(sessionId) }
                 recordPromptInspection(built.inspection)
@@ -232,7 +237,8 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
                     sessionId = sessionId,
                     inputDraft = "",
                     isExpanded = uiState.lorebookState.isExpanded,
-                    generationState = ChatGenerationState.Failed(message)
+                    generationState = ChatGenerationState.Failed(message),
+                    replyToMessage = null
                 )
                 AppViewEvent.PopupToastMessage(message).tryEmit()
             }
@@ -669,6 +675,23 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
                 editingMessageId = null,
                 editingMessageDraft = ""
             )
+        ).setup()
+    }
+
+    @UiIntentObserver(ChatUiIntent.ReplyToMessage::class)
+    private fun onReplyToMessage(intent: ChatUiIntent.ReplyToMessage) {
+        val uiState = getOrNull<ChatUiState.Normal>() ?: return
+        val message = uiState.conversationState.messages.firstOrNull { it.id == intent.messageId } ?: return
+        uiState.copy(
+            conversationState = uiState.conversationState.copy(replyToMessage = message)
+        ).setup()
+    }
+
+    @UiIntentObserver(ChatUiIntent.ClearReplyMessage::class)
+    private fun onClearReplyMessage() {
+        val uiState = getOrNull<ChatUiState.Normal>() ?: return
+        uiState.copy(
+            conversationState = uiState.conversationState.copy(replyToMessage = null)
         ).setup()
     }
 
@@ -1208,6 +1231,7 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
         expandedThinkBlockIds: Set<String> = emptySet(),
         editingMessageId: String? = null,
         editingMessageDraft: String = "",
+        replyToMessage: ChatMessageUiModel? = null,
         dialogState: ChatDialogState = ChatDialogState.None
     ): ChatUiState.Normal? {
         // 所有 UI model 在 ViewModel 中组装，Compose 只负责渲染和发送 intent。
@@ -1270,7 +1294,8 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
                 generationState = generationState,
                 expandedThinkBlockIds = expandedThinkBlockIds,
                 editingMessageId = editingMessageId,
-                editingMessageDraft = editingMessageDraft
+                editingMessageDraft = editingMessageDraft,
+                replyToMessage = replyToMessage
             ),
             lorebookState = lorebookData.toChatLorebookGroupItems(
                     enabledIds = enabledIds,
@@ -1305,6 +1330,8 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
             ?.conversationState?.editingMessageId,
         editingMessageDraft: String = getOrNull<ChatUiState.Normal>()
             ?.conversationState?.editingMessageDraft.orEmpty(),
+        replyToMessage: ChatMessageUiModel? = getOrNull<ChatUiState.Normal>()
+            ?.conversationState?.replyToMessage,
         dialogState: ChatDialogState = getOrNull<ChatUiState.Normal>()?.dialogState ?: ChatDialogState.None
     ) {
         val nextState = withContext(Dispatchers.IO) {
@@ -1319,6 +1346,7 @@ class ChatViewModel : CoreViewModelWithEvent<ChatUiIntent, ChatUiState>(
                 expandedThinkBlockIds = expandedThinkBlockIds,
                 editingMessageId = editingMessageId,
                 editingMessageDraft = editingMessageDraft,
+                replyToMessage = replyToMessage,
                 dialogState = dialogState
             )
         } ?: return

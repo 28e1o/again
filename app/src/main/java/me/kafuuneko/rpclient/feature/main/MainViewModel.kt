@@ -209,6 +209,29 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
         ).setup()
     }
 
+    @UiIntentObserver(MainUiIntent.TogglePinSession::class)
+    private suspend fun onTogglePinSession(intent: MainUiIntent.TogglePinSession) {
+        val uiState = getOrNull<MainUiState.Normal>() ?: return
+        val sessionId = intent.session.sessionId.toLongOrNull() ?: return
+        val isCurrentlyPinned = when (intent.session.type) {
+            MainSessionType.Chat -> {
+                val s = mChatRepository.getAllSessions().firstOrNull { it.id == sessionId }
+                s?.isPinned ?: false
+            }
+            MainSessionType.GroupChat -> {
+                val s = mGroupChatRepository.getAllSessions().firstOrNull { it.id == sessionId }
+                s?.isPinned ?: false
+            }
+        }
+        withContext(Dispatchers.IO) {
+            when (intent.session.type) {
+                MainSessionType.Chat -> mChatRepository.updateSessionPinned(sessionId, !isCurrentlyPinned)
+                MainSessionType.GroupChat -> mGroupChatRepository.updateSessionPinned(sessionId, !isCurrentlyPinned)
+            }
+        }
+        uiState.copy(homeState = buildHomeState()).setup()
+    }
+
     @UiIntentObserver(MainUiIntent.DismissDialog::class)
     private fun onDismissDialog() {
         val uiState = getOrNull<MainUiState.Normal>() ?: return
@@ -650,7 +673,7 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             val groupSessions = mGroupChatRepository.getAllSessions()
             val sessionItems = sessions.map { session ->
                 session.toUiModel(characterMap[session.characterId])
-            }
+            }.sortedByDescending { it.isPinned }
             MainHomeState(
                 sessionGroups = sessionItems.groupBy { it.characterId }.map { (id, items) ->
                     MainChatSessionGroup(
@@ -672,9 +695,10 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
                             ?.takeIf { it.isNotBlank() }
                             ?: mContext.getString(R.string.no_messages_yet),
                         messageCount = data?.messages?.size ?: 0,
-                        updatedAt = session.latestTime.formatTimestamp("MM-dd HH:mm")
+                        updatedAt = session.latestTime.formatTimestamp("MM-dd HH:mm"),
+                        isPinned = session.isPinned
                     )
-                },
+                }.sortedByDescending { it.isPinned },
                 totalCharacters = characters.size,
                 totalWorldBooks = mLorebookRepository.getAllLorebooks().size
             )
@@ -769,7 +793,8 @@ class MainViewModel : CoreViewModelWithEvent<MainUiIntent, MainUiState>(
             title = title,
             preview = latestMessage?.content?.stripThinkBlocks()?.takeIf { it.isNotBlank() } ?: mContext.getString(R.string.no_messages_yet),
             messageCount = mChatRepository.getMessageCountBySessionId(id),
-            updatedAt = latestTime.formatTimestamp("MM-dd HH:mm")
+            updatedAt = latestTime.formatTimestamp("MM-dd HH:mm"),
+            isPinned = isPinned
         )
     }
 }
