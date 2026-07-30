@@ -17,6 +17,7 @@ import me.kafuuneko.rpclient.R
 import me.kafuuneko.rpclient.feature.toGenerationFailureMessage
 import me.kafuuneko.rpclient.feature.chat.model.ChatGenerationState
 import me.kafuuneko.rpclient.feature.chat.model.ChatLorebookGroupItem
+import me.kafuuneko.rpclient.feature.chat.model.ChatMessageUiModel
 import me.kafuuneko.rpclient.feature.chat.presentation.ChatDialogState
 import me.kafuuneko.rpclient.feature.chat.presentation.ChatConversationState
 import me.kafuuneko.rpclient.feature.chat.presentation.ChatLorebookState
