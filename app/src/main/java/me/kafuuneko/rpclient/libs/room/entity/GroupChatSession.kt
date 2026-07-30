@@ -1,5 +1,6 @@
 package me.kafuuneko.rpclient.libs.room.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -31,6 +32,7 @@ data class GroupChatSession(
     val autoModeEnabled: Boolean = false,
     val trimOtherSpeakers: Boolean = true,
     val autoSummaryPaused: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
     val isPinned: Boolean = false
 ) {
     /** 本轮发言者选择策略。 */

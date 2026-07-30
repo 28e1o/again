@@ -1,5 +1,6 @@
 package me.kafuuneko.rpclient.libs.room.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -52,6 +53,7 @@ data class ChatSession(
     // 是否仅暂停当前会话的自动总结；手动总结不受影响。
     val autoSummaryPaused: Boolean = false,
     // 是否固定在首页顶部
+    @ColumnInfo(defaultValue = "0")
     val isPinned: Boolean = false
 ) {
     /** 将空白 creator notes 覆盖归一化为 null，使读取时继续继承角色卡默认值。 */
