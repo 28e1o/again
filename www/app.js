@@ -104,8 +104,8 @@ function lastActivity(chat){
 function previewFor(chat, msg){
   const role = chat.roles.find(r => r.id === msg.roleId);
   const sender = role ? role.name : '?';
-  const isActive = msg.roleId === chat.activeRoleId;
-  const label = isActive ? '' : `${sender}: `;
+  const isMe = role && (role.type === 'me' || role.id === 'me');
+  const label = isMe ? '' : `${sender}: `;
   const body = msg.media ? (msg.media.type === 'video' ? '🎥 Video' : '📷 Foto') + (msg.text ? ' · ' + msg.text : '') : msg.text;
   return label + body;
 }
@@ -319,7 +319,6 @@ function switchRole(){
   saveState();
 
   renderChatHeaderIdentity();
-  updateMessagePerspective();
 
   const btn = document.getElementById('btn-switch-role');
   btn.classList.add('spin');
@@ -328,10 +327,10 @@ function switchRole(){
 
 function buildMessageRow(chat, msg){
   const role = chat.roles.find(r => r.id === msg.roleId) || {name:'?'};
-  const isActive = msg.roleId === chat.activeRoleId;
+  const isMe = role.type === 'me' || role.id === 'me';
 
   const row = document.createElement('div');
-  row.className = 'msg-row ' + (isActive ? 'me' : 'other');
+  row.className = 'msg-row ' + (isMe ? 'me' : 'other');
   row.dataset.roleId = msg.roleId;
   row.dataset.msgId = msg.id;
 
@@ -346,12 +345,12 @@ function buildMessageRow(chat, msg){
   const sender = document.createElement('div');
   sender.className = 'msg-sender';
   sender.textContent = role.name;
-  sender.style.display = isActive ? 'none' : 'block';
+  sender.style.display = isMe ? 'none' : 'block';
   content.appendChild(sender);
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble' + (msg.media ? ' has-media' : '');
-  if(isActive) bubble.style.background = chat.myBubbleColor || '#0084ff';
+  if(isMe) bubble.style.background = chat.myBubbleColor || '#0084ff';
 
   if(msg.replyTo){
     const quote = document.createElement('div');
@@ -393,7 +392,7 @@ function buildMessageRow(chat, msg){
       const cap = document.createElement('div');
       cap.className = 'msg-caption';
       cap.textContent = msg.text;
-      if(isActive) cap.style.background = chat.myBubbleColor || '#0084ff';
+      if(isMe) cap.style.background = chat.myBubbleColor || '#0084ff';
       bubble.appendChild(cap);
     }
   } else if(msg.text){
@@ -518,27 +517,6 @@ function renderMessages(){
 
   chat.messages.forEach(msg => box.appendChild(buildMessageRow(chat, msg)));
   box.scrollTop = box.scrollHeight;
-}
-
-// Dipanggil setelah ganti peran: menukar class 'me'/'other' dan label pengirim
-// pada baris yang sudah ada di layar, tanpa membangun ulang DOM — sehingga
-// transisi warna & posisi (lihat CSS) terlihat mengalir halus.
-function updateMessagePerspective(){
-  const chat = getCurrentChat();
-  const box = document.getElementById('messages');
-  [...box.children].forEach(row => {
-    const roleId = row.dataset.roleId;
-    if(!roleId) return;
-    const isActive = roleId === chat.activeRoleId;
-    row.classList.toggle('me', isActive);
-    row.classList.toggle('other', !isActive);
-    const label = row.querySelector('.msg-sender');
-    if(label) label.style.display = isActive ? 'none' : 'block';
-    const bubble = row.querySelector('.bubble');
-    if(bubble) bubble.style.background = isActive ? (chat.myBubbleColor || '#0084ff') : '';
-    const caption = row.querySelector('.msg-caption');
-    if(caption) caption.style.background = isActive ? (chat.myBubbleColor || '#0084ff') : '';
-  });
 }
 
 // ---------------------------------------------------------------
