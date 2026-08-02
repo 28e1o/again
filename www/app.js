@@ -28,6 +28,11 @@ function loadState(){
     if(chat.bio === undefined) chat.bio = '';
     if(!chat.fontFamily) chat.fontFamily = 'system';
     if(!chat.fontSize) chat.fontSize = 15;
+    if(chat.roles){
+      chat.roles.forEach(r => { if(r.avatarUrl === undefined) r.avatarUrl = null; });
+      const charRole = chat.roles.find(r => r.type === 'other');
+      if(chat.avatarUrl && charRole && !charRole.avatarUrl) charRole.avatarUrl = chat.avatarUrl;
+    }
   });
 }
 function saveState(){
@@ -156,8 +161,8 @@ function saveNewCharacter(){
     fontFamily: 'system',
     fontSize: 15,
     roles: [
-      { id:'me', name:'Aku', type:'me', color:'#0084ff' },
-      { id:'char', name:name, type:'other', color:selectedColor }
+      { id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null },
+      { id:'char', name:name, type:'other', color:selectedColor, avatarUrl:null }
     ],
     activeRoleId: 'me',
     messages: []
@@ -201,9 +206,9 @@ function saveNewGroup(){
   const members = [...memberInputs].map(i => i.value.trim()).filter(Boolean);
   if(members.length === 0){ alert('Tambahkan minimal satu anggota.'); return; }
 
-  const roles = [{ id:'me', name:'Aku', type:'me', color:'#0084ff' }];
+  const roles = [{ id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null }];
   members.forEach((m, idx) => {
-    roles.push({ id: 'm'+idx+'_'+uid(), name: m, type:'other', color: AVATAR_COLORS[idx % AVATAR_COLORS.length] });
+    roles.push({ id: 'm'+idx+'_'+uid(), name: m, type:'other', color: AVATAR_COLORS[idx % AVATAR_COLORS.length], avatarUrl:null });
   });
 
   const chat = {
@@ -235,12 +240,6 @@ function getCurrentChat(){
   return state.chats.find(c => c.id === state.currentChatId);
 }
 
-function activeRoleName(){
-  const chat = getCurrentChat();
-  const r = chat && chat.roles.find(x => x.id === chat.activeRoleId);
-  return r ? r.name : '';
-}
-
 function openChat(chatId){
   state.currentChatId = chatId;
   const chat = getCurrentChat();
@@ -250,7 +249,7 @@ function openChat(chatId){
   renderChatBackground();
   renderBioBanner();
   renderChatFontStyle();
-  document.getElementById('chat-header-role').textContent = activeRoleName();
+  document.getElementById('chat-header-role').textContent = 'online';
   renderMessages();
   showScreen('screen-chat');
 
@@ -259,12 +258,13 @@ function openChat(chatId){
 
 function renderChatHeaderIdentity(){
   const chat = getCurrentChat();
+  const role = chat.roles.find(r => r.id === chat.activeRoleId) || chat.roles[0] || {};
   const avatarEl = document.getElementById('chat-header-avatar');
-  avatarEl.style.background = chat.color;
-  avatarEl.innerHTML = chat.avatarUrl
-    ? `<img src="${chat.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
-    : initials(chat.name);
-  document.getElementById('chat-header-name').textContent = chat.name;
+  avatarEl.style.background = role.color || chat.color;
+  avatarEl.innerHTML = role.avatarUrl
+    ? `<img src="${role.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
+    : initials(role.name || chat.name);
+  document.getElementById('chat-header-name').textContent = role.name || chat.name;
 }
 
 function renderChatBackground(){
@@ -318,7 +318,8 @@ function switchRole(){
   chat.activeRoleId = chat.roles[nextIdx].id;
   saveState();
 
-  document.getElementById('chat-header-role').textContent = activeRoleName();
+  renderChatHeaderIdentity();
+  updateMessagePerspective();
 
   const btn = document.getElementById('btn-switch-role');
   btn.classList.add('spin');
@@ -327,10 +328,10 @@ function switchRole(){
 
 function buildMessageRow(chat, msg){
   const role = chat.roles.find(r => r.id === msg.roleId) || {name:'?'};
-  const isMe = role.type === 'me' || role.id === 'me';
+  const isActive = msg.roleId === chat.activeRoleId;
 
   const row = document.createElement('div');
-  row.className = 'msg-row ' + (isMe ? 'me' : 'other');
+  row.className = 'msg-row ' + (isActive ? 'me' : 'other');
   row.dataset.roleId = msg.roleId;
   row.dataset.msgId = msg.id;
 
@@ -345,12 +346,12 @@ function buildMessageRow(chat, msg){
   const sender = document.createElement('div');
   sender.className = 'msg-sender';
   sender.textContent = role.name;
-  sender.style.display = isMe ? 'none' : 'block';
+  sender.style.display = isActive ? 'none' : 'block';
   content.appendChild(sender);
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble' + (msg.media ? ' has-media' : '');
-  if(isMe) bubble.style.background = chat.myBubbleColor || '#0084ff';
+  if(isActive) bubble.style.background = chat.myBubbleColor || '#0084ff';
 
   if(msg.replyTo){
     const quote = document.createElement('div');
@@ -392,7 +393,7 @@ function buildMessageRow(chat, msg){
       const cap = document.createElement('div');
       cap.className = 'msg-caption';
       cap.textContent = msg.text;
-      if(isMe) cap.style.background = chat.myBubbleColor || '#0084ff';
+      if(isActive) cap.style.background = chat.myBubbleColor || '#0084ff';
       bubble.appendChild(cap);
     }
   } else if(msg.text){
@@ -517,6 +518,27 @@ function renderMessages(){
 
   chat.messages.forEach(msg => box.appendChild(buildMessageRow(chat, msg)));
   box.scrollTop = box.scrollHeight;
+}
+
+// Dipanggil setelah ganti peran: menukar class 'me'/'other' dan label pengirim
+// pada baris yang sudah ada di layar, tanpa membangun ulang DOM — sehingga
+// transisi warna & posisi (lihat CSS) terlihat mengalir halus.
+function updateMessagePerspective(){
+  const chat = getCurrentChat();
+  const box = document.getElementById('messages');
+  [...box.children].forEach(row => {
+    const roleId = row.dataset.roleId;
+    if(!roleId) return;
+    const isActive = roleId === chat.activeRoleId;
+    row.classList.toggle('me', isActive);
+    row.classList.toggle('other', !isActive);
+    const label = row.querySelector('.msg-sender');
+    if(label) label.style.display = isActive ? 'none' : 'block';
+    const bubble = row.querySelector('.bubble');
+    if(bubble) bubble.style.background = isActive ? (chat.myBubbleColor || '#0084ff') : '';
+    const caption = row.querySelector('.msg-caption');
+    if(caption) caption.style.background = isActive ? (chat.myBubbleColor || '#0084ff') : '';
+  });
 }
 
 // ---------------------------------------------------------------
@@ -676,11 +698,13 @@ function handleMediaFile(file){
 // ---------------------------------------------------------------
 const BUBBLE_COLOR_PRESETS = ['#0084ff','#3ecf8e','#f2426e','#a06bd7','#f2a94e','#00b8d9','#7c8b9a','#111111'];
 let pendingAvatarDataUrl = undefined;   // undefined = tak berubah, null = dihapus, string = baru
+let pendingMeAvatarDataUrl = undefined;
 let pendingBgDataUrl = undefined;
 
 function openChatSettings(){
   const chat = getCurrentChat();
   pendingAvatarDataUrl = undefined;
+  pendingMeAvatarDataUrl = undefined;
   pendingBgDataUrl = undefined;
 
   const meRole = chat.roles.find(r => r.type === 'me' || r.id === 'me');
@@ -691,6 +715,12 @@ function openChatSettings(){
   const activeRole = chat.roles.find(r => r.id === chat.activeRoleId);
   document.getElementById('settings-active-role-line').textContent =
     'Peran aktif saat ini di chat ini: ' + (activeRole ? activeRole.name : '-');
+
+  const mePreview = document.getElementById('settings-me-avatar-preview');
+  mePreview.style.background = meRole ? (meRole.color || '#0084ff') : '#0084ff';
+  mePreview.innerHTML = meRole && meRole.avatarUrl
+    ? `<img src="${meRole.avatarUrl}">`
+    : (meRole ? initials(meRole.name) : 'A');
 
   const preview = document.getElementById('settings-avatar-preview');
   preview.style.background = chat.color;
@@ -738,10 +768,16 @@ function saveChatSettings(){
   const myName = document.getElementById('settings-myname').value.trim();
   const meRole = chat.roles.find(r => r.type === 'me' || r.id === 'me');
   if(myName && meRole) meRole.name = myName;
+  if(meRole && pendingMeAvatarDataUrl !== undefined) meRole.avatarUrl = pendingMeAvatarDataUrl;
 
   chat.bio = document.getElementById('settings-bio').value.trim();
 
   if(pendingAvatarDataUrl !== undefined) chat.avatarUrl = pendingAvatarDataUrl;
+
+  const charRole = chat.roles.find(r => r.id !== 'me' && r.type === 'other');
+  if(chat.type === 'character' && charRole && pendingAvatarDataUrl !== undefined){
+    charRole.avatarUrl = pendingAvatarDataUrl;
+  }
 
   chat.myBubbleColor = document.getElementById('settings-color-custom').value;
 
@@ -768,6 +804,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settings-cancel').addEventListener('click', () => closeModal('modal-chat-settings'));
   document.getElementById('settings-save').addEventListener('click', saveChatSettings);
   document.getElementById('reply-preview-remove').addEventListener('click', clearReply);
+
+  document.getElementById('btn-upload-me-avatar').addEventListener('click', () => {
+    document.getElementById('me-avatar-input').click();
+  });
+  document.getElementById('me-avatar-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    resizeImageFile(file, 500, 0.85).then(dataUrl => {
+      pendingMeAvatarDataUrl = dataUrl;
+      document.getElementById('settings-me-avatar-preview').innerHTML = `<img src="${dataUrl}">`;
+    });
+  });
 
   document.getElementById('btn-upload-avatar').addEventListener('click', () => {
     document.getElementById('avatar-input').click();
