@@ -190,8 +190,17 @@ button{font-family:inherit;}
 }
 .msg-row.me{margin-left:auto; margin-right:0;}
 .msg-row.other{margin-right:auto; margin-left:0;}
+.msg-body{display:flex; align-items:flex-end; gap:7px;}
+.msg-row.me .msg-body{flex-direction:row-reverse;}
+.msg-avatar{
+  width:30px; height:30px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:700; font-size:12px; background:#6b7fd7;
+}
+.msg-avatar img{width:100%; height:100%; object-fit:cover;}
 .msg-content{
   display:flex; flex-direction:column; touch-action:pan-y;
+  min-width:0;
 }
 .msg-row.me .msg-content{align-items:flex-end;}
 .msg-row.other .msg-content{align-items:flex-start;}

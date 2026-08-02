@@ -350,6 +350,19 @@ function buildMessageRow(chat, msg){
   swipeIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M10 9V6l-6 6 6 6v-3.1c4.2 0 7.4 1.4 9.6 4.1-.7-4.6-3.4-9-9.6-10z"/></svg>';
   row.appendChild(swipeIcon);
 
+  // Foto profil pengirim di samping bubble (termasuk "Aku")
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.style.background = role.color || chat.color || '#6b7fd7';
+  avatar.innerHTML = role.avatarUrl
+    ? `<img src="${role.avatarUrl}">`
+    : '';
+  if(!role.avatarUrl) avatar.textContent = initials(role.name || '?');
+  body.appendChild(avatar);
+
   const content = document.createElement('div');
   content.className = 'msg-content';
 
@@ -427,7 +440,8 @@ function buildMessageRow(chat, msg){
   time.textContent = formatTime(msg.time) + (msg.edited ? ' · diedit' : '');
   content.appendChild(time);
 
-  row.appendChild(content);
+  body.appendChild(content);
+  row.appendChild(body);
   attachGestures(content, swipeIcon, chat, msg, role);
 
   return row;
