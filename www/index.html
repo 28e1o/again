@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RP Chat</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== HOME / LIST SCREEN ===================== -->
+<div id="screen-home" class="screen active">
+  <header class="topbar">
+    <h1>Pesan</h1>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-open-settings-home" title="Pengaturan">
+        <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 3.4l1.6-1.2a.9.9 0 00.2-1.1l-1.5-2.6a.9.9 0 00-1-.4l-1.9.6a7.4 7.4 0 00-1.7-1l-.3-2a.9.9 0 00-.9-.7h-3a.9.9 0 00-.9.7l-.3 2a7.4 7.4 0 00-1.7 1l-1.9-.6a.9.9 0 00-1 .4L3.6 9.1a.9.9 0 00.2 1.1l1.6 1.2a7.6 7.6 0 000 2l-1.6 1.2a.9.9 0 00-.2 1.1l1.5 2.6a.9.9 0 001 .4l1.9-.6a7.4 7.4 0 001.7 1l.3 2a.9.9 0 00.9.7h3a.9.9 0 00.9-.7l.3-2a7.4 7.4 0 001.7-1l1.9.6a.9.9 0 001-.4l1.5-2.6a.9.9 0 00-.2-1.1l-1.6-1.2a7.6 7.6 0 000-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 10-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg></button>
+    </div>
+  </header>
+
+  <div class="chat-list" id="chat-list"></div>
+
+  <button class="fab" id="btn-fab">+</button>
+</div>
+
+<!-- ===================== NEW CHAT MODAL ===================== -->
+<div id="modal-new" class="modal-overlay">
+  <div class="modal-sheet">
+    <h3>Buat Baru</h3>
+    <button class="sheet-option" id="opt-new-character">
+      <span class="sheet-icon">🧑</span>
+      <span>
+        <b>Karakter Baru</b>
+        <small>Percakapan roleplay 1 lawan 1</small>
+      </span>
+    </button>
+    <button class="sheet-option" id="opt-new-group">
+      <span class="sheet-icon">👥</span>
+      <span>
+        <b>Grup Baru</b>
+        <small>Roleplay dengan beberapa karakter</small>
+      </span>
+    </button>
+    <button class="sheet-cancel" id="opt-cancel-new">Batal</button>
+  </div>
+</div>
+
+<!-- ===================== FORM: NEW CHARACTER ===================== -->
+<div id="modal-character-form" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Karakter Baru</h3>
+    <label>Nama karaktermu (lawan roleplay)</label>
+    <input type="text" id="char-name" placeholder="Misal: Arsya">
+    <label>Warna avatar</label>
+    <div class="color-picker" id="char-color-picker"></div>
+    <div class="form-actions">
+      <button class="btn-secondary" id="char-cancel">Batal</button>
+      <button class="btn-primary" id="char-save">Buat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FORM: NEW GROUP ===================== -->
+<div id="modal-group-form" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Grup Baru</h3>
+    <label>Nama grup</label>
+    <input type="text" id="group-name" placeholder="Misal: GC Para Nolep">
+    <label>Anggota (selain kamu)</label>
+    <div id="group-members-list"></div>
+    <button class="btn-add-member" id="btn-add-member">+ Tambah anggota</button>
+    <div class="form-actions">
+      <button class="btn-secondary" id="group-cancel">Batal</button>
+      <button class="btn-primary" id="group-save">Buat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CHAT SCREEN ===================== -->
+<div id="screen-chat" class="screen">
+  <header class="topbar chat-topbar">
+    <button class="icon-btn" id="btn-back"><svg viewBox="0 0 24 24"><path d="M15.4 7.4L14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg></button>
+    <div class="chat-avatar" id="chat-header-avatar"></div>
+    <div class="chat-header-info">
+      <div class="chat-header-name" id="chat-header-name"></div>
+      <div class="chat-header-role" id="chat-header-role"></div>
+    </div>
+    <button class="icon-btn role-switch-btn" id="btn-switch-role" title="Ganti peran">
+      <svg viewBox="0 0 24 24"><path d="M7 7h8.6l-2.3-2.3L14.7 3.3 19.4 8l-4.7 4.7-1.4-1.4L15.6 9H7a2 2 0 00-2 2v2H3v-2a4 4 0 014-4zm10 10H8.4l2.3 2.3-1.4 1.4L4.6 16l4.7-4.7 1.4 1.4L8.4 15H17a2 2 0 002-2v-2h2v2a4 4 0 01-4 4z"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-chat-settings" title="Pengaturan chat">
+      <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 3.4l1.6-1.2a.9.9 0 00.2-1.1l-1.5-2.6a.9.9 0 00-1-.4l-1.9.6a7.4 7.4 0 00-1.7-1l-.3-2a.9.9 0 00-.9-.7h-3a.9.9 0 00-.9.7l-.3 2a7.4 7.4 0 00-1.7 1l-1.9-.6a.9.9 0 00-1 .4L3.6 9.1a.9.9 0 00.2 1.1l1.6 1.2a7.6 7.6 0 000 2l-1.6 1.2a.9.9 0 00-.2 1.1l1.5 2.6a.9.9 0 001 .4l1.9-.6a7.4 7.4 0 001.7 1l.3 2a.9.9 0 00.9.7h3a.9.9 0 00.9-.7l.3-2a7.4 7.4 0 001.7-1l1.9.6a.9.9 0 001-.4l1.5-2.6a.9.9 0 00-.2-1.1l-1.6-1.2a7.6 7.6 0 000-2z"/></svg>
+    </button>
+  </header>
+
+  <div class="bio-banner" id="bio-banner"></div>
+
+  <div class="messages-wrap">
+    <div class="chat-bg-layer" id="chat-bg-layer"></div>
+    <div class="messages" id="messages"></div>
+  </div>
+
+  <div class="reply-preview-bar" id="reply-preview-bar">
+    <div class="reply-preview-accent"></div>
+    <div class="reply-preview-body">
+      <div class="reply-preview-sender" id="reply-preview-sender"></div>
+      <div class="reply-preview-text" id="reply-preview-text"></div>
+    </div>
+    <button class="reply-preview-remove" id="reply-preview-remove">✕</button>
+  </div>
+
+  <div class="media-preview-bar" id="media-preview-bar">
+    <div class="media-preview-thumb" id="media-preview-thumb"></div>
+    <span class="media-preview-name" id="media-preview-name"></span>
+    <button class="media-preview-remove" id="media-preview-remove">✕</button>
+  </div>
+
+  <div class="composer">
+    <input type="file" id="media-input" accept="image/*,video/*" hidden>
+    <button class="icon-btn attach-btn" id="btn-attach" title="Kirim foto/video">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm1 12h14l-4.5-6-3.5 4.5-2-2.5L5 17zm2.5-7a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+    </button>
+    <input type="text" id="msg-input" placeholder="Pesan">
+    <button class="send-btn" id="btn-send">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ===================== CHAT SETTINGS MODAL ===================== -->
+<div id="modal-chat-settings" class="modal-overlay">
+  <div class="modal-sheet form-sheet settings-sheet">
+    <h3>Pengaturan Chat</h3>
+
+    <div class="settings-avatar-row">
+      <div class="settings-avatar-preview" id="settings-avatar-preview"></div>
+      <button class="btn-secondary" id="btn-upload-avatar">Ubah foto profil</button>
+      <input type="file" id="avatar-input" accept="image/*" hidden>
+    </div>
+
+    <label>Nama</label>
+    <input type="text" id="settings-name">
+
+    <label>Bio karakter</label>
+    <textarea id="settings-bio" rows="3" placeholder="Deskripsi singkat / kepribadian karakter ini..."></textarea>
+
+    <div class="settings-info-line" id="settings-active-role-line"></div>
+
+    <label>Warna bubble milikmu</label>
+    <div class="color-picker" id="settings-color-picker"></div>
+    <input type="color" id="settings-color-custom" class="color-custom-input">
+
+    <label>Latar belakang chat</label>
+    <div class="settings-bg-row">
+      <button class="btn-secondary" id="btn-upload-bg">Pilih gambar</button>
+      <button class="btn-secondary" id="btn-remove-bg">Hapus latar</button>
+      <input type="file" id="bg-input" accept="image/*" hidden>
+    </div>
+    <label>Opasitas latar</label>
+    <input type="range" id="settings-bg-opacity" min="0" max="100" value="100">
+
+    <label>Gaya teks pesan</label>
+    <select id="settings-font-family">
+      <option value="system">Default</option>
+      <option value="serif">Serif (klasik)</option>
+      <option value="rounded">Rounded / santai</option>
+      <option value="mono">Monospace</option>
+    </select>
+
+    <label>Ukuran teks pesan</label>
+    <input type="range" id="settings-font-size" min="13" max="20" value="15">
+
+    <div class="form-actions">
+      <button class="btn-secondary" id="settings-cancel">Batal</button>
+      <button class="btn-primary" id="settings-save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MESSAGE LONG-PRESS ACTIONS ===================== -->
+<div id="modal-msg-actions" class="modal-overlay">
+  <div class="modal-sheet">
+    <h3>Pesan</h3>
+    <button class="sheet-option" id="opt-edit-message">
+      <span class="sheet-icon">✏️</span>
+      <span><b>Edit Pesan</b></span>
+    </button>
+    <button class="sheet-option danger" id="opt-delete-message">
+      <span class="sheet-icon">🗑️</span>
+      <span><b>Hapus Pesan</b></span>
+    </button>
+    <button class="sheet-cancel" id="opt-cancel-msg-actions">Batal</button>
+  </div>
+</div>
+
+<!-- ===================== EDIT MESSAGE ===================== -->
+<div id="modal-edit-message" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Edit Pesan</h3>
+    <textarea id="edit-message-text" rows="4" placeholder="Tulis pesan..."></textarea>
+    <div class="form-actions">
+      <button class="btn-secondary" id="edit-message-cancel">Batal</button>
+      <button class="btn-primary" id="edit-message-save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

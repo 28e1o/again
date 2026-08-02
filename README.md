@@ -1,113 +1,63 @@
-<div align="center">
-  <img src="app/src/main/res/drawable/app_logo.png" alt="RPClient Logo" width="112" />
+# RP Chat
 
-  # RPClient
+Aplikasi chat roleplay bergaya Messenger, dibuat dengan HTML/CSS/JS murni dan
+dibungkus jadi aplikasi Android memakai [Capacitor](https://capacitorjs.com/).
+Kamu menulis sendiri kedua sisi percakapan: tekan ikon ⚙️ di pojok kanan atas
+chat untuk berpindah peran. Saat peran aktif "Aku", bubble pesan biru di
+kanan; kalau sudah pindah ke karakter/anggota lain, bubble jadi abu-abu di
+kiri — jadi jelas siapa yang sedang "bicara" tanpa perlu ganti akun.
 
-  [简体中文](README_ZH.md) | English
+## Fitur
 
-  A local-first AI role-playing chat client for Android.
+- Layar utama mirip daftar chat Facebook/Messenger.
+- Tombol **+** untuk membuat **Karakter** (chat 1 lawan 1) atau **Grup**
+  (banyak peran dalam satu chat).
+- Ganti peran cukup dengan menekan ikon pengaturan di chat — tidak perlu
+  logout/login.
+- Pesan bisa dibalas (swipe/klik → reply), diedit, dan dihapus lewat
+  long-press.
+- Kirim foto/video sebagai lampiran.
+- Kustomisasi per chat: foto profil, bio karakter, warna bubble, latar
+  belakang chat, gaya & ukuran teks.
+- Semua data tersimpan otomatis di penyimpanan lokal HP (tidak perlu internet
+  setelah APK terpasang).
 
-  Supports character cards, lorebooks, one-on-one chats, group chats, long-term summary memory, prompt inspection, and multiple LLM APIs.
+## Cara build jadi APK lewat GitHub Actions
 
-  [Overview](#overview) · [Screenshots](#screenshots) · [Features](#features) · [Quick Start](#quick-start) · [Contributing](#contributing)
-</div>
+1. Buat repository baru di GitHub, lalu push seluruh isi folder ini
+   (jangan lupa folder `.github` ikut ter-upload, itu yang berisi workflow-nya).
+2. Buka tab **Actions** di repo tersebut. Workflow **Build APK** akan otomatis
+   jalan setiap kamu push ke branch `master`. Bisa juga dijalankan manual lewat
+   tombol **Run workflow**.
+3. Tunggu sampai proses selesai (tanda centang hijau). Buka run tersebut,
+   scroll ke bagian **Artifacts**, lalu unduh `rp-chat-debug-apk.zip`.
+4. Ekstrak zip itu, di dalamnya ada `app-debug.apk`. Pindahkan ke HP Android
+   dan install seperti biasa (aktifkan dulu "Izinkan dari sumber tidak
+   dikenal" kalau diminta).
 
-## Overview
+## Uji coba tanpa APK
 
-RPClient is built with Kotlin and Jetpack Compose to provide a complete and controllable AI role-playing experience on Android devices. Chat histories, characters, lorebooks, and app settings are stored locally by default, while model requests are sent directly to the provider configured by the user.
+Karena ini murni HTML/CSS/JS biasa, kamu bisa langsung buka `www/index.html`
+di browser HP/laptop untuk uji coba tampilan sebelum build APK.
 
-The project draws on SillyTavern's ecosystem for character cards, lorebooks, prompts, and Regex scripts, and provides corresponding import, export, and compatibility features. RPClient is not an Android port of SillyTavern, and some advanced fields and runtime behaviors may differ.
+## Struktur folder
 
-> [!WARNING]
-> This project is still under development. Data structures, the user interface, and compatibility behavior may continue to change. Keep the original files when importing important character cards, lorebooks, or Regex scripts, and back up your data regularly.
+```
+again/
+├── www/                  ← isi aplikasi (HTML/CSS/JS)
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
+├── package.json
+├── capacitor.config.json
+└── .github/workflows/build-apk.yml   ← workflow build APK otomatis
+```
 
-## Screenshots
+## Kustomisasi lanjutan
 
-<p align="center">
-  <img src="metadata/images/home.jpg" alt="RPClient home screen" width="45%" />
-  <img src="metadata/images/chat.jpg" alt="RPClient chat screen" width="45%" />
-</p>
-
-## Features
-
-### Conversations
-
-- One-on-one character chats and multi-character group chats
-- Streaming responses, stop generation, regenerate, and continue generation
-- Impersonate generation from the user's perspective
-- Create conversation branches from a selected message
-- Markdown message rendering and collapsible reasoning content
-- Automatic or manual long-term summary memory generation
-- Per-chat lorebook entry selection
-
-### Characters and Lorebooks
-
-- Create, edit, search, and manage characters
-- Import Character Card V1/V2 JSON and PNG character cards
-- Export Character Card V2 JSON or PNG files with embedded metadata
-- Character avatars, multiple greetings, example dialogues, and extension fields
-- Create, edit, import, and export SillyTavern-style lorebooks
-- Keyword scanning, recursive activation, probability, priority, depth, Token budget, and other settings
-
-### Models and Prompts
-
-- OpenAI Compatible API
-- Google Gemini API
-- Anthropic Messages API
-- Built-in configuration templates for ChatGPT, Gemini, Claude, DeepSeek, Grok, and OpenRouter
-- Custom service URLs, models, request headers, and generation parameters
-- Prompt presets, macro expansion, and protocol-specific message post-processing
-- Prompt Inspector for reviewing final messages, Token budgets, lorebook matches, Regex processing, and omitted content
-- Debug mode for locally recording and viewing raw request and response JSON
-
-### Regex Scripts
-
-- Compatible with commonly used SillyTavern Regex script JSON
-- Global, Preset, and Character scopes
-- Source, Markdown, and Prompt execution modes
-- Script ordering, duplication, testing, import, and export
-- Scripts embedded in character cards are not automatically granted permission to run
-
-### Other
-
-- Local-first data storage
-- Material 3 and dynamic colors
-- User interface available in Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German, French, and Russian
-- Android 8.0 (API 26) or later
-
-## Quick Start
-
-1. Install and open RPClient.
-2. Go to "Settings > Model Providers" and select an existing template or create a new provider.
-3. Enter the API key, model name, and service URL. Test the connection, then enable the provider.
-4. Create a character or import an existing JSON/PNG character card.
-5. Import lorebooks and associate them with characters as needed.
-6. Create a one-on-one chat or group chat and start chatting.
-
-API keys are stored only on the device, but they are sent to the configured provider with model requests. Only use API endpoints and proxy services that you trust.
-
-## AI Coding Guide
-
-AI-assisted changes must start from [doc/coding-guidelines.md](doc/coding-guidelines.md). The guide is tailored for RPClient's Feature + MVI structure, Room data layer, Koin/Kotpref usage, and domain rules for character cards, lorebooks, prompts, Regex scripts, LLM requests, and request logs.
-
-Read only the relevant topic guides for the task before editing code, then run the smallest verification that matches the risk of the change.
-
-## Contributing
-
-Issues and pull requests are welcome. Before making changes, please review the [AI Coding Guide](doc/coding-guidelines.md) when using AI-assisted coding.
-
-Before submitting code, please ensure that the project can at least be built successfully.
-
-When reporting compatibility issues, include sanitized character cards, lorebooks, or Regex JSON where possible, along with the provider protocol, model name, and reproduction steps. Do not disclose API keys, private conversations, or character resources without authorization in an issue.
-
-## Privacy and Disclaimer
-
-- RPClient does not provide model services. Users are responsible for API usage fees and generated content.
-- Request content is sent to the model provider configured by the user. Review the provider's privacy policy before use.
-- This project is not affiliated with or officially partnered with SillyTavern, OpenAI, Google, Anthropic, DeepSeek, xAI, or OpenRouter.
-- Copyright and usage permissions for character cards, lorebooks, and other imported content are the responsibility of their providers and users.
-
-## Contact
-
-- GitHub: [KafuuNeko/RPClient](https://github.com/KafuuNeko/RPClient)
-- Email: kafuuneko@gmail.com
+- Warna avatar karakter/grup diambil otomatis dari daftar warna di
+  `app.js` (variabel `AVATAR_COLORS`) — bisa ditambah/diubah sesuka hati.
+- Semua logika ada di `www/app.js`, terstruktur per fungsi (buat karakter,
+  buat grup, kirim pesan, dll) supaya gampang dikembangkan.
+- App ID (`cloud.wumboing.rpchat` di `capacitor.config.json`) bisa diganti
+  sesuai keinginan sebelum build pertama kali.
