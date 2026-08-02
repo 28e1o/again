@@ -106,7 +106,8 @@ function previewFor(chat, msg){
   const sender = role ? role.name : '?';
   const isActive = msg.roleId === chat.activeRoleId;
   const label = isActive ? '' : `${sender}: `;
-  const body = msg.media ? (msg.media.type === 'video' ? '🎥 Video' : '📷 Foto') + (msg.text ? ' · ' + msg.text : '') : msg.text;
+  const mtype = msg.media ? (msg.media.type === 'video' ? '🎥 Video' : msg.media.type === 'audio' ? '🎤 Pesan suara' : '📷 Foto') : '';
+  const body = msg.media ? mtype + (msg.text ? ' · ' + msg.text : '') : msg.text;
   return label + body;
 }
 
@@ -258,13 +259,12 @@ function openChat(chatId){
 
 function renderChatHeaderIdentity(){
   const chat = getCurrentChat();
-  const role = chat.roles.find(r => r.id === chat.activeRoleId) || chat.roles[0] || {};
   const avatarEl = document.getElementById('chat-header-avatar');
-  avatarEl.style.background = role.color || chat.color;
-  avatarEl.innerHTML = role.avatarUrl
-    ? `<img src="${role.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
-    : initials(role.name || chat.name);
-  document.getElementById('chat-header-name').textContent = role.name || chat.name;
+  avatarEl.style.background = chat.color;
+  avatarEl.innerHTML = chat.avatarUrl
+    ? `<img src="${chat.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
+    : initials(chat.name);
+  document.getElementById('chat-header-name').textContent = chat.name;
 }
 
 function renderChatBackground(){
@@ -318,7 +318,6 @@ function switchRole(){
   chat.activeRoleId = chat.roles[nextIdx].id;
   saveState();
 
-  renderChatHeaderIdentity();
   updateMessagePerspective();
 
   const btn = document.getElementById('btn-switch-role');
@@ -350,7 +349,7 @@ function buildMessageRow(chat, msg){
   content.appendChild(sender);
 
   const bubble = document.createElement('div');
-  bubble.className = 'bubble' + (msg.media ? ' has-media' : '');
+  bubble.className = 'bubble' + (msg.media && msg.media.type !== 'audio' ? ' has-media' : '');
   if(isActive) bubble.style.background = chat.myBubbleColor || '#0084ff';
 
   if(msg.replyTo){
@@ -368,7 +367,16 @@ function buildMessageRow(chat, msg){
     bubble.appendChild(quote);
   }
 
-  if(msg.media){
+  if(msg.media && msg.media.type === 'audio'){
+    bubble.appendChild(createVoiceNote(msg));
+    if(msg.text){
+      const cap = document.createElement('div');
+      cap.className = 'msg-caption';
+      cap.textContent = msg.text;
+      if(msg.text && isActive) cap.style.background = chat.myBubbleColor || '#0084ff';
+      bubble.appendChild(cap);
+    }
+  } else if(msg.media){
     if(msg.media.type === 'video'){
       const vid = document.createElement('video');
       vid.src = msg.media.dataUrl;
@@ -627,6 +635,135 @@ function closeMediaViewer(){
 }
 
 // ---------------------------------------------------------------
+// Pesan suara (ekstrak audio dari video + visualizer)
+// ---------------------------------------------------------------
+function formatDur(sec){
+  sec = Math.max(0, Math.round(sec || 0));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function createVoiceNote(msg){
+  const wrap = document.createElement('div');
+  wrap.className = 'voice-note';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'voice-play-btn';
+  btn.textContent = '▶';
+  const bars = document.createElement('div');
+  bars.className = 'voice-visualizer';
+  for(let i = 0; i < 24; i++){
+    const s = document.createElement('span');
+    s.style.animationDelay = (i * 0.04) + 's';
+    bars.appendChild(s);
+  }
+  const dur = document.createElement('span');
+  dur.className = 'voice-dur';
+  dur.textContent = formatDur(msg.media.duration);
+  wrap.appendChild(btn);
+  wrap.appendChild(bars);
+  wrap.appendChild(dur);
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleVoicePlayback(msg.media.dataUrl, wrap, btn);
+  });
+  return wrap;
+}
+
+let voicePlayer = null;
+
+function toggleVoicePlayback(url, wrap, btn){
+  if(voicePlayer && voicePlayer.wrap === wrap && voicePlayer.playing){
+    voicePlayer.audio.pause();
+    voicePlayer.playing = false;
+    btn.textContent = '▶';
+    wrap.classList.remove('playing');
+    voicePlayer = null;
+    return;
+  }
+  if(voicePlayer){
+    try{ voicePlayer.audio.pause(); }catch(e){}
+    voicePlayer.playing = false;
+    voicePlayer.btn.textContent = '▶';
+    voicePlayer.wrap.classList.remove('playing');
+  }
+  const audio = new Audio(url);
+  voicePlayer = { audio, wrap, btn, playing: true };
+  btn.textContent = '⏸';
+  wrap.classList.add('playing');
+  audio.addEventListener('ended', () => {
+    if(voicePlayer && voicePlayer.audio === audio){
+      voicePlayer.playing = false;
+      voicePlayer.btn.textContent = '▶';
+      voicePlayer.wrap.classList.remove('playing');
+      voicePlayer = null;
+    }
+  });
+  audio.play().catch(() => {
+    btn.textContent = '▶';
+    wrap.classList.remove('playing');
+  });
+}
+
+// Ekstrak audio dari sebuah video (dataUrl) lalu enkode ke WAV mono 16kHz,
+// kembalikan Promise<{dataUrl, duration}>.
+function videoToVoiceWav(videoDataUrl){
+  return new Promise((resolve, reject) => {
+    const videoEl = document.createElement('video');
+    videoEl.preload = 'auto';
+    videoEl.playsInline = true;
+    videoEl.muted = false;
+    videoEl.src = videoDataUrl;
+    videoEl.onerror = () => reject(new Error('Gagal memuat video'));
+    videoEl.onloadedmetadata = () => {
+      const rate = 16000;
+      const ctx = new OfflineAudioContext(1, Math.ceil((videoEl.duration || 1) * rate), rate);
+      const src = ctx.createMediaElementSource(videoEl);
+      src.connect(ctx.destination);
+      const onEnd = () => {
+        videoEl.removeEventListener('ended', onEnd);
+        ctx.startRendering().then(buffer => {
+          audioBufferToWav(buffer).then(dataUrl => {
+            resolve({ dataUrl: dataUrl, duration: videoEl.duration });
+          }).catch(reject);
+        }).catch(reject);
+      };
+      videoEl.addEventListener('ended', onEnd);
+      videoEl.play().catch(reject);
+    };
+  });
+}
+
+function audioBufferToWav(buffer){
+  const numCh = Math.min(2, Math.max(1, buffer.numberOfChannels));
+  const rate = buffer.sampleRate;
+  const data = buffer.getChannelData(0);
+  const bytes = data.length * numCh * 2;
+  const ab = new ArrayBuffer(44 + bytes);
+  const v = new DataView(ab);
+  const ws = (o, s) => { for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); v.setUint32(4, 36 + bytes, true); ws(8, 'WAVE');
+  ws(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, numCh, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * numCh * 2, true);
+  v.setUint16(32, numCh * 2, true); v.setUint16(34, 16, true);
+  ws(36, 'data'); v.setUint32(40, bytes, true);
+  let o = 44;
+  for(let i = 0; i < data.length; i++){
+    let s = Math.max(-1, Math.min(1, data[i]));
+    s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    v.setInt16(o, s, true); o += 2;
+    if(numCh === 2){ v.setInt16(o, s, true); o += 2; }
+  }
+  const blob = new Blob([v], { type: 'audio/wav' });
+  return new Promise((res) => {
+    const r = new FileReader();
+    r.onloadend = () => res(r.result);
+    r.readAsDataURL(blob);
+  });
+}
+
+// ---------------------------------------------------------------
 // Kirim foto / video
 // ---------------------------------------------------------------
 let pendingMedia = null; // {type:'image'|'video', dataUrl}
@@ -637,6 +774,7 @@ function clearPendingMedia(){
   document.getElementById('media-preview-thumb').innerHTML = '';
   document.getElementById('media-preview-name').textContent = '';
   document.getElementById('media-input').value = '';
+  document.getElementById('media-convert-voice').style.display = 'none';
 }
 
 // Resize + kompres gambar via canvas, return Promise<dataURL>
@@ -681,6 +819,7 @@ function handleMediaFile(file){
       thumb.appendChild(img);
     }
     document.getElementById('media-preview-name').textContent = isVideo ? 'Video siap dikirim' : 'Foto siap dikirim';
+    document.getElementById('media-convert-voice').style.display = isVideo ? 'inline-flex' : 'none';
     document.getElementById('media-preview-bar').classList.add('active');
   };
 
@@ -891,6 +1030,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if(file) handleMediaFile(file);
   });
   document.getElementById('media-preview-remove').addEventListener('click', clearPendingMedia);
+
+  document.getElementById('media-convert-voice').addEventListener('click', async () => {
+    if(!pendingMedia || pendingMedia.type !== 'video') return;
+    const nameEl = document.getElementById('media-preview-name');
+    const btn = document.getElementById('media-convert-voice');
+    nameEl.textContent = 'Mengubah ke pesan suara...';
+    btn.style.pointerEvents = 'none';
+    try{
+      const res = await videoToVoiceWav(pendingMedia.dataUrl);
+      pendingMedia = { type: 'audio', dataUrl: res.dataUrl, duration: res.duration };
+      btn.style.display = 'none';
+      document.getElementById('media-preview-thumb').innerHTML = '<div class="voice-preview-thumb">🎙️</div>';
+      nameEl.textContent = 'Pesan suara · ' + formatDur(res.duration);
+    }catch(err){
+      alert('Gagal mengonversi: ' + (err && err.message || err));
+      nameEl.textContent = 'Video siap dibuka';
+    }finally{
+      btn.style.pointerEvents = '';
+    }
+  });
 
   document.getElementById('media-viewer-close').addEventListener('click', closeMediaViewer);
   document.getElementById('media-viewer').addEventListener('click', (e) => {
