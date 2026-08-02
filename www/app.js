@@ -367,11 +367,19 @@ function buildMessageRow(chat, msg){
       vid.src = msg.media.dataUrl;
       vid.controls = true;
       vid.className = 'msg-video';
+      vid.addEventListener('click', () => {
+        vid.pause();
+        openMediaViewer(msg.media);
+      });
       bubble.appendChild(vid);
     } else {
       const img = document.createElement('img');
       img.src = msg.media.dataUrl;
       img.className = 'msg-image';
+      img.addEventListener('click', (e) => {
+        if(e.currentTarget.closest('.msg-content')?.dataset.suppressClick) return;
+        openMediaViewer(msg.media);
+      });
       bubble.appendChild(img);
     }
     if(msg.text){
@@ -415,11 +423,13 @@ function attachGestures(content, swipeIcon, chat, msg, role){
 
   content.addEventListener('pointerdown', (e) => {
     if(e.target.closest('video')) return; // jangan ganggu kontrol video
+    delete content.dataset.suppressClick;
     startX = e.clientX; startY = e.clientY;
     dragging = true; locked = null; longPressFired = false;
 
     longPressTimer = setTimeout(() => {
       longPressFired = true;
+      content.dataset.suppressClick = '1';
       dragging = false;
       content.classList.remove('dragging');
       content.classList.add('snap-back');
@@ -457,6 +467,7 @@ function attachGestures(content, swipeIcon, chat, msg, role){
     content.classList.add('snap-back');
 
     const dx = e.clientX ? e.clientX - startX : 0;
+    if(locked === 'x' && Math.abs(dx) > 6) content.dataset.suppressClick = '1';
     if(!longPressFired && locked === 'x' && dx > THRESHOLD){
       startReply(chat, msg, role);
     }
@@ -577,6 +588,35 @@ function sendMessage(){
   input.value = '';
   clearPendingMedia();
   clearReply();
+}
+
+// ---------------------------------------------------------------
+// Lihat foto / video secara fullscreen
+// ---------------------------------------------------------------
+function openMediaViewer(media){
+  const viewer = document.getElementById('media-viewer');
+  const stage = document.getElementById('media-viewer-stage');
+  stage.innerHTML = '';
+  if(media.type === 'video'){
+    const vid = document.createElement('video');
+    vid.src = media.dataUrl;
+    vid.controls = true;
+    vid.muted = true;
+    vid.autoplay = true;
+    vid.playsInline = true;
+    stage.appendChild(vid);
+  } else {
+    const img = document.createElement('img');
+    img.src = media.dataUrl;
+    stage.appendChild(img);
+  }
+  viewer.classList.add('active');
+}
+
+function closeMediaViewer(){
+  const viewer = document.getElementById('media-viewer');
+  document.getElementById('media-viewer-stage').innerHTML = '';
+  viewer.classList.remove('active');
 }
 
 // ---------------------------------------------------------------
@@ -799,6 +839,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('media-preview-remove').addEventListener('click', clearPendingMedia);
 
+  document.getElementById('media-viewer-close').addEventListener('click', closeMediaViewer);
+  document.getElementById('media-viewer').addEventListener('click', (e) => {
+    if(e.target.id === 'media-viewer') closeMediaViewer();
+  });
+
   document.getElementById('opt-cancel-msg-actions').addEventListener('click', () => closeModal('modal-msg-actions'));
 
   document.getElementById('opt-edit-message').addEventListener('click', () => {
@@ -849,6 +894,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // tombol back fisik Android (Capacitor akan memicu 'backbutton' via App plugin,
   // tapi fallback popstate juga disiapkan untuk browser biasa)
   window.addEventListener('popstate', () => {
+    if(document.getElementById('media-viewer').classList.contains('active')){
+      closeMediaViewer();
+      return;
+    }
     if(document.getElementById('screen-chat').classList.contains('active')){
       showScreen('screen-home');
       renderChatList();

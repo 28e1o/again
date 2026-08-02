@@ -313,3 +313,28 @@ button{font-family:inherit;}
 }
 .send-btn svg{width:18px; height:18px; fill:#fff;}
 .send-btn:active{background:#0069cc;}
+
+/* ---------- fullscreen media viewer ---------- */
+.media-viewer{
+  position:fixed; inset:0; z-index:100;
+  background:rgba(0,0,0,.97);
+  display:none; align-items:center; justify-content:center;
+}
+.media-viewer.active{display:flex;}
+.media-viewer-close{
+  position:absolute; top:calc(16px + env(safe-area-inset-top)); right:16px;
+  width:42px; height:42px; border-radius:50%; border:none;
+  background:rgba(255,255,255,.18); color:#fff;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2;
+}
+.media-viewer-close svg{width:22px; height:22px; fill:#fff;}
+.media-viewer-stage{
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+}
+.media-viewer-stage img{
+  max-width:100%; max-height:100%; object-fit:contain;
+}
+.media-viewer-stage video{
+  width:100%; height:100%; object-fit:contain;
+}
