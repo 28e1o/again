@@ -29,9 +29,13 @@ function loadState(){
     if(!chat.fontFamily) chat.fontFamily = 'system';
     if(!chat.fontSize) chat.fontSize = 15;
     if(chat.roles){
-      chat.roles.forEach(r => { if(r.avatarUrl === undefined) r.avatarUrl = null; });
+      chat.roles.forEach(r => {
+        if(r.avatarUrl === undefined) r.avatarUrl = null;
+        if(r.bio === undefined) r.bio = '';
+      });
       const charRole = chat.roles.find(r => r.type === 'other');
       if(chat.avatarUrl && charRole && !charRole.avatarUrl) charRole.avatarUrl = chat.avatarUrl;
+      if(chat.bio && charRole && !charRole.bio) charRole.bio = chat.bio;
     }
   });
 }
@@ -162,8 +166,8 @@ function saveNewCharacter(){
     fontFamily: 'system',
     fontSize: 15,
     roles: [
-      { id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null },
-      { id:'char', name:name, type:'other', color:selectedColor, avatarUrl:null }
+      { id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null, bio:'' },
+      { id:'char', name:name, type:'other', color:selectedColor, avatarUrl:null, bio:'' }
     ],
     activeRoleId: 'me',
     messages: []
@@ -207,9 +211,9 @@ function saveNewGroup(){
   const members = [...memberInputs].map(i => i.value.trim()).filter(Boolean);
   if(members.length === 0){ alert('Tambahkan minimal satu anggota.'); return; }
 
-  const roles = [{ id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null }];
+  const roles = [{ id:'me', name:'Aku', type:'me', color:'#0084ff', avatarUrl:null, bio:'' }];
   members.forEach((m, idx) => {
-    roles.push({ id: 'm'+idx+'_'+uid(), name: m, type:'other', color: AVATAR_COLORS[idx % AVATAR_COLORS.length], avatarUrl:null });
+    roles.push({ id: 'm'+idx+'_'+uid(), name: m, type:'other', color: AVATAR_COLORS[idx % AVATAR_COLORS.length], avatarUrl:null, bio:'' });
   });
 
   const chat = {
@@ -257,14 +261,17 @@ function openChat(chatId){
   setTimeout(() => document.getElementById('msg-input').focus(), 200);
 }
 
+// Header mengikuti peran yang sedang aktif: foto profil, warna, dan nama
+// berubah tiap kali ganti peran.
 function renderChatHeaderIdentity(){
   const chat = getCurrentChat();
+  const role = chat.roles.find(r => r.id === chat.activeRoleId) || chat.roles[0] || {};
   const avatarEl = document.getElementById('chat-header-avatar');
-  avatarEl.style.background = chat.color;
-  avatarEl.innerHTML = chat.avatarUrl
-    ? `<img src="${chat.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
-    : initials(chat.name);
-  document.getElementById('chat-header-name').textContent = chat.name;
+  avatarEl.style.background = role.color || chat.color;
+  avatarEl.innerHTML = role.avatarUrl
+    ? `<img src="${role.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
+    : initials(role.name || chat.name);
+  document.getElementById('chat-header-name').textContent = role.name || chat.name;
 }
 
 function renderChatBackground(){
@@ -279,13 +286,15 @@ function renderChatBackground(){
   }
 }
 
-// Bio karakter ditampilkan di area yang dulu dipakai untuk indikator peran —
-// indikator peran sekarang cukup dicek lewat Pengaturan Chat.
+// Bio yang tampil mengikuti peran yang sedang aktif (deskripsi karakter
+// saat memerankan karakter, bio kamu saat memerankan 'Aku').
 function renderBioBanner(){
   const chat = getCurrentChat();
   const banner = document.getElementById('bio-banner');
-  if(chat.bio && chat.bio.trim()){
-    banner.textContent = chat.bio.trim();
+  const role = chat.roles.find(r => r.id === chat.activeRoleId);
+  const bio = (role && role.bio) || '';
+  if(bio && bio.trim()){
+    banner.textContent = bio.trim();
     banner.classList.add('active');
   } else {
     banner.textContent = '';
@@ -318,6 +327,8 @@ function switchRole(){
   chat.activeRoleId = chat.roles[nextIdx].id;
   saveState();
 
+  renderChatHeaderIdentity();
+  renderBioBanner();
   updateMessagePerspective();
 
   const btn = document.getElementById('btn-switch-role');
@@ -706,31 +717,146 @@ function toggleVoicePlayback(url, wrap, btn){
   });
 }
 
-// Ekstrak audio dari sebuah video (dataUrl) lalu enkode ke WAV mono 16kHz,
-// kembalikan Promise<{dataUrl, duration}>.
-function videoToVoiceWav(videoDataUrl){
+// Pilih format rekaman yang didukung WebView (paling ringkas dulu).
+function pickRecorderMime(){
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4;codecs=mp4a.40.2', 'audio/mp4'];
+  if(typeof MediaRecorder === 'undefined') return '';
+  for(const m of candidates){
+    try{ if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) return m; }catch(e){}
+  }
+  return '';
+}
+
+// Ekstrak audio dari video (dataUrl) menjadi pesan suara.
+// Cara utama: captureStream + MediaRecorder (hasil ringkas, opus/webm).
+// Fallback: Web Audio OfflineAudioContext → WAV mono 16kHz.
+// Mengembalikan Promise<{dataUrl, duration}>.
+function videoToVoice(videoDataUrl){
   return new Promise((resolve, reject) => {
     const videoEl = document.createElement('video');
     videoEl.preload = 'auto';
     videoEl.playsInline = true;
-    videoEl.muted = false;
+    videoEl.muted = true;
     videoEl.src = videoDataUrl;
     videoEl.onerror = () => reject(new Error('Gagal memuat video'));
+
+    const cleanup = () => {
+      try{ videoEl.pause(); }catch(e){}
+      videoEl.removeAttribute('src');
+      try{ videoEl.load(); }catch(e){}
+    };
+
     videoEl.onloadedmetadata = () => {
-      const rate = 16000;
-      const ctx = new OfflineAudioContext(1, Math.ceil((videoEl.duration || 1) * rate), rate);
-      const src = ctx.createMediaElementSource(videoEl);
-      src.connect(ctx.destination);
-      const onEnd = () => {
-        videoEl.removeEventListener('ended', onEnd);
-        ctx.startRendering().then(buffer => {
-          audioBufferToWav(buffer).then(dataUrl => {
-            resolve({ dataUrl: dataUrl, duration: videoEl.duration });
-          }).catch(reject);
-        }).catch(reject);
+      const getDuration = () => (isFinite(videoEl.duration) && videoEl.duration > 0) ? videoEl.duration : 0;
+      let duration = getDuration();
+      let settled = false;
+
+      const finish = (dataUrl) => {
+        if(settled) return;
+        settled = true;
+        cleanup();
+        resolve({ dataUrl: dataUrl, duration: duration });
       };
-      videoEl.addEventListener('ended', onEnd);
-      videoEl.play().catch(reject);
+      const fail = (err) => {
+        if(settled) return;
+        settled = true;
+        cleanup();
+        reject(err instanceof Error ? err : new Error(String(err)));
+      };
+
+      const recordViaMediaRecorder = () => {
+        try{
+          if(typeof videoEl.captureStream !== 'function' || typeof MediaRecorder === 'undefined'){
+            recordViaOffline();
+            return;
+          }
+          const stream = videoEl.captureStream();
+          const audioTracks = stream.getAudioTracks();
+          if(audioTracks.length === 0){
+            recordViaOffline();
+            return;
+          }
+          const mime = pickRecorderMime();
+          const rec = new MediaRecorder(new MediaStream(audioTracks), mime ? { mimeType: mime } : undefined);
+          const chunks = [];
+          rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+          rec.onstop = () => {
+            const blob = new Blob(chunks, { type: rec.mimeType || mime || 'audio/webm' });
+            const r = new FileReader();
+            r.onloadend = () => finish(r.result);
+            r.onerror = () => fail(new Error('Gagal membaca hasil audio'));
+            r.readAsDataURL(blob);
+          };
+          rec.onerror = () => fail(new Error('Gagal merekam audio'));
+          const stopRec = () => { if(rec.state !== 'inactive'){ try{ rec.stop(); }catch(e){} } };
+          videoEl.addEventListener('ended', stopRec);
+          rec.start();
+          videoEl.play().then(() => {
+            // jaring pengaman: kalau event 'ended' tidak terpantik
+            setTimeout(stopRec, Math.max(2000, duration * 1000 + 1500));
+          }).catch(fail);
+        }catch(e){
+          recordViaOffline();
+        }
+      };
+
+      const recordViaOffline = () => {
+        try{
+          if(typeof OfflineAudioContext === 'undefined'){
+            fail(new Error('Konversi audio tidak didukung di browser ini'));
+            return;
+          }
+          const rate = 16000;
+          const len = Math.ceil(duration * rate);
+          if(!isFinite(len) || len < rate) throw new Error('Durasi video tidak valid');
+          const ctx = new OfflineAudioContext(1, len, rate);
+          const src = ctx.createMediaElementSource(videoEl);
+          src.connect(ctx.destination);
+          let rendered = false;
+          const render = () => {
+            if(rendered) return;
+            rendered = true;
+            videoEl.removeEventListener('ended', render);
+            videoEl.removeEventListener('timeupdate', onTime);
+            ctx.startRendering().then(buffer => {
+              audioBufferToWav(buffer).then(dataUrl => finish(dataUrl)).catch(fail);
+            }).catch(fail);
+          };
+          const onTime = () => {
+            if(videoEl.duration && videoEl.currentTime >= videoEl.duration - 0.12) render();
+          };
+          videoEl.addEventListener('ended', render);
+          videoEl.addEventListener('timeupdate', onTime);
+          videoEl.muted = false;
+          videoEl.play().then(() => {
+            setTimeout(render, Math.max(2000, duration * 1000 + 1500));
+          }).catch(fail);
+        }catch(e){
+          fail(e);
+        }
+      };
+
+      const begin = () => {
+        if(duration > 0) return recordViaMediaRecorder();
+        // Durasi belum diketahui (beberapa format melaporkan Infinity):
+        // coba paksa browser menghitungnya dengan melompat ke posisi sangat jauh,
+        // lalu kembalikan ke awal.
+        const prevTime = videoEl.currentTime;
+        const onDur = () => {
+          duration = getDuration();
+          if(duration > 0){
+            videoEl.removeEventListener('durationchange', onDur);
+            videoEl.removeEventListener('timeupdate', onDur);
+            videoEl.currentTime = prevTime;
+            recordViaMediaRecorder();
+          }
+        };
+        videoEl.addEventListener('durationchange', onDur);
+        videoEl.addEventListener('timeupdate', onDur);
+        videoEl.currentTime = 1e7;
+      };
+
+      begin();
     };
   });
 }
@@ -848,6 +974,7 @@ function openChatSettings(){
 
   const meRole = chat.roles.find(r => r.type === 'me' || r.id === 'me');
   document.getElementById('settings-myname').value = meRole ? meRole.name : 'Aku';
+  document.getElementById('settings-my-bio').value = meRole ? (meRole.bio || '') : '';
   document.getElementById('settings-name').value = chat.name;
   document.getElementById('settings-bio').value = chat.bio || '';
 
@@ -907,6 +1034,7 @@ function saveChatSettings(){
   const myName = document.getElementById('settings-myname').value.trim();
   const meRole = chat.roles.find(r => r.type === 'me' || r.id === 'me');
   if(myName && meRole) meRole.name = myName;
+  if(meRole) meRole.bio = document.getElementById('settings-my-bio').value.trim();
   if(meRole && pendingMeAvatarDataUrl !== undefined) meRole.avatarUrl = pendingMeAvatarDataUrl;
 
   chat.bio = document.getElementById('settings-bio').value.trim();
@@ -917,6 +1045,8 @@ function saveChatSettings(){
   if(chat.type === 'character' && charRole && pendingAvatarDataUrl !== undefined){
     charRole.avatarUrl = pendingAvatarDataUrl;
   }
+  // sinkronkan bio karakter (1v1) supaya bio peran ikut berubah
+  if(chat.type === 'character' && charRole) charRole.bio = chat.bio;
 
   chat.myBubbleColor = document.getElementById('settings-color-custom').value;
 
@@ -1038,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     nameEl.textContent = 'Mengubah ke pesan suara...';
     btn.style.pointerEvents = 'none';
     try{
-      const res = await videoToVoiceWav(pendingMedia.dataUrl);
+      const res = await videoToVoice(pendingMedia.dataUrl);
       pendingMedia = { type: 'audio', dataUrl: res.dataUrl, duration: res.duration };
       btn.style.display = 'none';
       document.getElementById('media-preview-thumb').innerHTML = '<div class="voice-preview-thumb">🎙️</div>';
