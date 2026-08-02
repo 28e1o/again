@@ -48,3 +48,12 @@ jobs:
         with:
           name: rp-chat-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v1.0.0-build-${{ github.run_number }}" \
+            android/app/build/outputs/apk/debug/app-debug.apk \
+            --title "RP Chat v1.0.0 (build ${{ github.run_number }})" \
+            --notes "Build otomatis dari commit \`${{ github.sha }}\`"
