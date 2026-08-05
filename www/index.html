@@ -2,101 +2,67 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>RP Chat</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/chat.css">
+<link rel="stylesheet" href="css/modals.css">
+<link rel="stylesheet" href="css/dark.css">
 </head>
 <body>
 
-<!-- ===================== HOME / LIST SCREEN ===================== -->
+<!-- ============================= HOME ============================= -->
 <div id="screen-home" class="screen active">
-  <header class="topbar">
-    <h1>Pesan</h1>
+  <div class="topbar">
+    <h1>Chat</h1>
     <div class="topbar-actions">
-      <button class="icon-btn" id="btn-open-settings-home" title="Pengaturan">
-        <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 3.4l1.6-1.2a.9.9 0 00.2-1.1l-1.5-2.6a.9.9 0 00-1-.4l-1.9.6a7.4 7.4 0 00-1.7-1l-.3-2a.9.9 0 00-.9-.7h-3a.9.9 0 00-.9.7l-.3 2a7.4 7.4 0 00-1.7 1l-1.9-.6a.9.9 0 00-1 .4L3.6 9.1a.9.9 0 00.2 1.1l1.6 1.2a7.6 7.6 0 000 2l-1.6 1.2a.9.9 0 00-.2 1.1l1.5 2.6a.9.9 0 001 .4l1.9-.6a7.4 7.4 0 001.7 1l.3 2a.9.9 0 00.9.7h3a.9.9 0 00.9-.7l.3-2a7.4 7.4 0 001.7-1l1.9.6a.9.9 0 001-.4l1.5-2.6a.9.9 0 00-.2-1.1l-1.6-1.2a7.6 7.6 0 000-2z"/></svg>
-      </button>
-      <button class="icon-btn" id="btn-theme" title="Mode gelap/terang">
-        <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-      </button>
-      <button class="icon-btn" id="btn-search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 10-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg></button>
+      <button class="icon-btn" id="btn-search" title="Cari chat"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 10-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg></button>
+      <button class="icon-btn" id="btn-theme" title="Tema"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
+      <button class="icon-btn" id="btn-open-settings-home" title="Pengaturan"><svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.14 7.14 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.3 7.3 0 00-1.63-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.63.94l-2.39-.96a.5.5 0 00-.6.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.14 7.14 0 000 1.88L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.5.38 1.04.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.63-.94l2.39.96c.24.1.46 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.56zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg></button>
     </div>
-  </header>
+  </div>
+
+  <div class="home-tabs">
+    <button class="home-tab-btn active" id="tab-chats">Chats</button>
+    <button class="home-tab-btn" id="tab-stats">Statistik</button>
+  </div>
+
+  <div class="home-search-bar" id="home-search-bar">
+    <input type="text" id="home-search-input" placeholder="Cari nama chat...">
+  </div>
 
   <div class="chat-list" id="chat-list"></div>
+  <div class="stats-panel" id="stats-panel" style="display:none;"></div>
 
   <button class="fab" id="btn-fab">+</button>
 </div>
 
-<!-- ===================== NEW CHAT MODAL ===================== -->
-<div id="modal-new" class="modal-overlay">
-  <div class="modal-sheet">
-    <h3>Buat Baru</h3>
-    <button class="sheet-option" id="opt-new-character">
-      <span class="sheet-icon">🧑</span>
-      <span>
-        <b>Karakter Baru</b>
-        <small>Percakapan roleplay 1 lawan 1</small>
-      </span>
-    </button>
-    <button class="sheet-option" id="opt-new-group">
-      <span class="sheet-icon">👥</span>
-      <span>
-        <b>Grup Baru</b>
-        <small>Roleplay dengan beberapa karakter</small>
-      </span>
-    </button>
-    <button class="sheet-cancel" id="opt-cancel-new">Batal</button>
-  </div>
-</div>
-
-<!-- ===================== FORM: NEW CHARACTER ===================== -->
-<div id="modal-character-form" class="modal-overlay">
-  <div class="modal-sheet form-sheet">
-    <h3>Karakter Baru</h3>
-    <label>Nama karaktermu (lawan roleplay)</label>
-    <input type="text" id="char-name" placeholder="Misal: Arsya">
-    <label>Warna avatar</label>
-    <div class="color-picker" id="char-color-picker"></div>
-    <div class="form-actions">
-      <button class="btn-secondary" id="char-cancel">Batal</button>
-      <button class="btn-primary" id="char-save">Buat</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== FORM: NEW GROUP ===================== -->
-<div id="modal-group-form" class="modal-overlay">
-  <div class="modal-sheet form-sheet">
-    <h3>Grup Baru</h3>
-    <label>Nama grup</label>
-    <input type="text" id="group-name" placeholder="Misal: GC Para Nolep">
-    <label>Anggota (selain kamu)</label>
-    <div id="group-members-list"></div>
-    <button class="btn-add-member" id="btn-add-member">+ Tambah anggota</button>
-    <div class="form-actions">
-      <button class="btn-secondary" id="group-cancel">Batal</button>
-      <button class="btn-primary" id="group-save">Buat</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== CHAT SCREEN ===================== -->
+<!-- ============================= CHAT ============================= -->
 <div id="screen-chat" class="screen">
-  <header class="topbar chat-topbar">
-    <button class="icon-btn" id="btn-back"><svg viewBox="0 0 24 24"><path d="M15.4 7.4L14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg></button>
+  <div class="topbar chat-topbar">
+    <button class="icon-btn" id="btn-back"><svg viewBox="0 0 24 24"><path d="M15.5 5L8.5 12l7 7-1.4 1.4L5.7 12l8.4-8.4z"/></svg></button>
     <div class="chat-avatar" id="chat-header-avatar"></div>
     <div class="chat-header-info">
       <div class="chat-header-name" id="chat-header-name"></div>
       <div class="chat-header-role" id="chat-header-role"></div>
     </div>
-    <button class="icon-btn role-switch-btn" id="btn-switch-role" title="Ganti peran">
-      <svg viewBox="0 0 24 24"><path d="M7 7h8.6l-2.3-2.3L14.7 3.3 19.4 8l-4.7 4.7-1.4-1.4L15.6 9H7a2 2 0 00-2 2v2H3v-2a4 4 0 014-4zm10 10H8.4l2.3 2.3-1.4 1.4L4.6 16l4.7-4.7 1.4 1.4L8.4 15H17a2 2 0 002-2v-2h2v2a4 4 0 01-4 4z"/></svg>
-    </button>
-    <button class="icon-btn" id="btn-chat-settings" title="Pengaturan chat">
-      <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 3.4l1.6-1.2a.9.9 0 00.2-1.1l-1.5-2.6a.9.9 0 00-1-.4l-1.9.6a7.4 7.4 0 00-1.7-1l-.3-2a.9.9 0 00-.9-.7h-3a.9.9 0 00-.9.7l-.3 2a7.4 7.4 0 00-1.7 1l-1.9-.6a.9.9 0 00-1 .4L3.6 9.1a.9.9 0 00.2 1.1l1.6 1.2a7.6 7.6 0 000 2l-1.6 1.2a.9.9 0 00-.2 1.1l1.5 2.6a.9.9 0 001 .4l1.9-.6a7.4 7.4 0 001.7 1l.3 2a.9.9 0 00.9.7h3a.9.9 0 00.9-.7l.3-2a7.4 7.4 0 001.7-1l1.9.6a.9.9 0 001-.4l1.5-2.6a.9.9 0 00-.2-1.1l-1.6-1.2a7.6 7.6 0 000-2z"/></svg>
-    </button>
-  </header>
+    <button class="icon-btn" id="btn-chat-search" title="Cari pesan"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 10-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg></button>
+    <div class="role-switch-wrap">
+      <button class="icon-btn role-switch-btn" id="btn-switch-role" title="Ganti peran"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 7l5 5V9c3.31 0 6 2.69 6 6 0 .68-.11 1.33-.32 1.94l1.51 1.51A7.94 7.94 0 0020 15c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-.68.11-1.33.32-1.94L4.81 9.55A7.94 7.94 0 004 15c0 4.42 3.58 8 8 8v3l5-5-5-5z"/></svg></button>
+      <button class="role-dropdown-toggle" id="role-dropdown-toggle">▾</button>
+      <div class="dropdown-menu" id="role-dropdown-menu"></div>
+    </div>
+    <button class="icon-btn" id="btn-chat-settings" title="Pengaturan chat"><svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.14 7.14 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.3 7.3 0 00-1.63-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.63.94l-2.39-.96a.5.5 0 00-.6.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.14 7.14 0 000 1.88L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.5.38 1.04.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.63-.94l2.39.96c.24.1.46 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.56zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg></button>
+  </div>
+
+  <div class="chat-search-bar" id="chat-search-bar">
+    <input type="text" id="chat-search-input" placeholder="Cari pesan di chat ini...">
+    <span class="chat-search-count" id="chat-search-count"></span>
+    <button class="chat-search-nav" id="chat-search-prev">▲</button>
+    <button class="chat-search-nav" id="chat-search-next">▼</button>
+    <button class="icon-btn" id="chat-search-close" style="width:30px;height:30px;">✕</button>
+  </div>
 
   <div class="bio-banner" id="bio-banner"></div>
 
@@ -116,108 +82,99 @@
 
   <div class="media-preview-bar" id="media-preview-bar">
     <div class="media-preview-thumb" id="media-preview-thumb"></div>
-    <span class="media-preview-name" id="media-preview-name"></span>
-    <button class="media-convert-voice" id="media-convert-voice" title="Ubah video jadi pesan suara">🎤 Suara</button>
+    <div class="media-preview-name" id="media-preview-name"></div>
+    <button class="media-convert-voice" id="media-convert-voice">🎙️ Jadikan suara</button>
     <button class="media-preview-remove" id="media-preview-remove">✕</button>
   </div>
 
   <div class="composer">
-    <input type="file" id="media-input" accept="image/*,video/*" hidden>
-    <button class="icon-btn attach-btn" id="btn-attach" title="Kirim foto/video">
-      <svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm1 12h14l-4.5-6-3.5 4.5-2-2.5L5 17zm2.5-7a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-    </button>
+    <button class="icon-btn attach-btn" id="btn-attach" title="Kirim foto/video"><svg viewBox="0 0 24 24"><path d="M16.5 6v11.5a4 4 0 01-8 0V5a2.5 2.5 0 015 0v10.5a1 1 0 01-2 0V6H10v9.5a2.5 2.5 0 005 0V5a4 4 0 00-8 0v12.5a5.5 5.5 0 0011 0V6h-1.5z"/></svg></button>
+    <button class="icon-btn narration-btn" id="btn-narration" title="Mode narasi">📝</button>
     <input type="text" id="msg-input" placeholder="Pesan">
-    <button class="send-btn" id="btn-send">
-      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-    </button>
+    <button class="send-btn" id="btn-send"><svg viewBox="0 0 24 24"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></button>
+  </div>
+
+  <input type="file" id="media-input" accept="image/*,video/*" style="display:none">
+</div>
+
+<!-- ============================= MODALS ============================= -->
+
+<!-- menu tambah baru -->
+<div id="modal-new" class="modal-overlay">
+  <div class="modal-sheet">
+    <h3>Buat Baru</h3>
+    <button class="sheet-option" id="opt-new-character"><span class="sheet-icon">👤</span><span><b>Karakter (1v1)</b><small>Chat pribadi dengan satu karakter</small></span></button>
+    <button class="sheet-option" id="opt-new-group"><span class="sheet-icon">👥</span><span><b>Grup</b><small>Chat dengan beberapa karakter sekaligus</small></span></button>
+    <button class="sheet-cancel" id="opt-cancel-new">Batal</button>
   </div>
 </div>
 
-<!-- ===================== CHAT SETTINGS MODAL ===================== -->
-<div id="modal-chat-settings" class="modal-overlay">
-  <div class="modal-sheet form-sheet settings-sheet">
-    <h3>Pengaturan Chat</h3>
-
-    <label>Foto profil kamu</label>
-    <div class="settings-avatar-row">
-      <div class="settings-avatar-preview" id="settings-me-avatar-preview"></div>
-      <button class="btn-secondary" id="btn-upload-me-avatar">Ubah foto profil kamu</button>
-      <input type="file" id="me-avatar-input" accept="image/*" hidden>
-    </div>
-
-    <label>Foto profil karakter</label>
-    <div class="settings-avatar-row">
-      <div class="settings-avatar-preview" id="settings-avatar-preview"></div>
-      <button class="btn-secondary" id="btn-upload-avatar">Ubah foto profil</button>
-      <input type="file" id="avatar-input" accept="image/*" hidden>
-    </div>
-
-    <label>Nama kamu (bubble kanan)</label>
-    <input type="text" id="settings-myname" placeholder="Aku">
-
-    <label>Bio kamu (muncul saat kamu memerankan 'Aku')</label>
-    <textarea id="settings-my-bio" rows="3" placeholder="Deskripsi singkat tentang kamu..."></textarea>
-
-    <label>Nama</label>
-    <input type="text" id="settings-name">
-
-    <label>Bio karakter</label>
-    <textarea id="settings-bio" rows="3" placeholder="Deskripsi singkat / kepribadian karakter ini..."></textarea>
-
-    <div class="settings-info-line" id="settings-active-role-line"></div>
-
-    <label>Warna bubble milikmu</label>
-    <div class="color-picker" id="settings-color-picker"></div>
-    <input type="color" id="settings-color-custom" class="color-custom-input">
-
-    <label>Latar belakang chat</label>
-    <div class="settings-bg-row">
-      <button class="btn-secondary" id="btn-upload-bg">Pilih gambar</button>
-      <button class="btn-secondary" id="btn-remove-bg">Hapus latar</button>
-      <input type="file" id="bg-input" accept="image/*" hidden>
-    </div>
-    <label>Opasitas latar</label>
-    <input type="range" id="settings-bg-opacity" min="0" max="100" value="100">
-
-    <label>Gaya teks pesan</label>
-    <select id="settings-font-family">
-      <option value="system">Default</option>
-      <option value="serif">Serif (klasik)</option>
-      <option value="rounded">Rounded / santai</option>
-      <option value="mono">Monospace</option>
-    </select>
-
-    <label>Ukuran teks pesan</label>
-    <input type="range" id="settings-font-size" min="13" max="20" value="15">
-
+<!-- form karakter baru -->
+<div id="modal-character-form" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Karakter Baru</h3>
+    <label>Nama karakter</label>
+    <input type="text" id="char-name" placeholder="Mis. Akmal">
+    <label>Warna</label>
+    <div class="color-picker" id="char-color-picker"></div>
     <div class="form-actions">
-      <button class="btn-secondary" id="settings-cancel">Batal</button>
-      <button class="btn-primary" id="settings-save">Simpan</button>
+      <button class="btn-secondary" id="char-cancel">Batal</button>
+      <button class="btn-primary" id="char-save">Buat</button>
     </div>
   </div>
 </div>
 
-<!-- ===================== MESSAGE LONG-PRESS ACTIONS ===================== -->
+<!-- form grup baru -->
+<div id="modal-group-form" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Grup Baru</h3>
+    <label>Nama grup</label>
+    <input type="text" id="group-name" placeholder="Mis. Genk Sekolah">
+    <label>Anggota</label>
+    <div id="group-members-list"></div>
+    <button type="button" class="btn-add-member" id="btn-add-member">+ Tambah anggota</button>
+    <div class="form-actions">
+      <button class="btn-secondary" id="group-cancel">Batal</button>
+      <button class="btn-primary" id="group-save">Buat</button>
+    </div>
+  </div>
+</div>
+
+<!-- menu tekan-tahan pada baris chat -->
+<div id="modal-chat-row-menu" class="modal-overlay">
+  <div class="modal-sheet">
+    <button class="sheet-option" id="chat-menu-pin"><span class="sheet-icon">📌</span><span><b id="chat-menu-pin-label">Sematkan (Pin)</b></span></button>
+    <button class="sheet-option" id="chat-menu-export"><span class="sheet-icon">📤</span><span><b>Ekspor chat ini</b><small>Simpan sebagai file cadangan</small></span></button>
+    <button class="sheet-option danger" id="chat-menu-delete"><span class="sheet-icon">🗑️</span><span><b>Hapus chat</b></span></button>
+    <button class="sheet-cancel" id="chat-menu-cancel">Batal</button>
+  </div>
+</div>
+
+<!-- menu aksi pesan -->
 <div id="modal-msg-actions" class="modal-overlay">
   <div class="modal-sheet">
-    <h3>Pesan</h3>
-    <button class="sheet-option" id="opt-edit-message">
-      <span class="sheet-icon">✏️</span>
-      <span><b>Edit Pesan</b></span>
-    </button>
-    <button class="sheet-option danger" id="opt-delete-message">
-      <span class="sheet-icon">🗑️</span>
-      <span><b>Hapus Pesan</b></span>
-    </button>
+    <button class="sheet-option" id="opt-reply-message"><span class="sheet-icon">↩️</span><span><b>Balas</b></span></button>
+    <button class="sheet-option" id="opt-react-message"><span class="sheet-icon">❤️</span><span><b>Reaksi</b></span></button>
+    <button class="sheet-option" id="opt-copy-message"><span class="sheet-icon">📋</span><span><b>Salin teks</b></span></button>
+    <button class="sheet-option" id="opt-edit-message"><span class="sheet-icon">✏️</span><span><b>Edit</b></span></button>
+    <button class="sheet-option danger" id="opt-delete-message"><span class="sheet-icon">🗑️</span><span><b>Hapus</b></span></button>
     <button class="sheet-cancel" id="opt-cancel-msg-actions">Batal</button>
   </div>
 </div>
 
-<!-- ===================== EDIT MESSAGE ===================== -->
+<!-- pemilih reaksi -->
+<div id="modal-reaction-picker" class="modal-overlay">
+  <div class="modal-sheet">
+    <h3>Pilih reaksi</h3>
+    <div class="reaction-picker-bar" id="reaction-picker-bar"></div>
+  </div>
+</div>
+
+<!-- edit pesan -->
 <div id="modal-edit-message" class="modal-overlay">
   <div class="modal-sheet form-sheet">
     <h3>Edit Pesan</h3>
-    <textarea id="edit-message-text" rows="4" placeholder="Tulis pesan..."></textarea>
+    <textarea id="edit-message-text" rows="4"></textarea>
     <div class="form-actions">
       <button class="btn-secondary" id="edit-message-cancel">Batal</button>
       <button class="btn-primary" id="edit-message-save">Simpan</button>
@@ -225,14 +182,135 @@
   </div>
 </div>
 
-<!-- ===================== FULLSCREEN MEDIA VIEWER ===================== -->
-<div id="media-viewer" class="media-viewer">
-  <button class="media-viewer-close" id="media-viewer-close" title="Tutup">
-    <svg viewBox="0 0 24 24"><path d="M18.3 5.7L12 12l-6.3-6.3-1.4 1.4L10.6 13.4l-6.3 6.3 1.4 1.4 6.3-6.3 6.3 6.3 1.4-1.4-6.3-6.3 6.3-6.3z"/></svg>
-  </button>
+<!-- pengaturan chat (bertab) -->
+<div id="modal-chat-settings" class="modal-overlay">
+  <div class="modal-sheet settings-sheet form-sheet">
+    <h3>Pengaturan Chat</h3>
+    <div class="settings-tabs">
+      <button class="settings-tab-btn active" data-tab="profil">Kamu</button>
+      <button class="settings-tab-btn" data-tab="anggota">Anggota</button>
+      <button class="settings-tab-btn" data-tab="tampilan">Tampilan</button>
+    </div>
+
+    <!-- tab: Kamu (persona) -->
+    <div class="settings-tab-panel" data-tab="profil">
+      <div id="settings-personas-list"></div>
+      <button type="button" class="btn-dashed" onclick="addPersona()">+ Tambah persona</button>
+    </div>
+
+    <!-- tab: Anggota / Karakter -->
+    <div class="settings-tab-panel" data-tab="anggota" style="display:none;">
+      <div class="settings-section-title" id="settings-members-title">Karakter</div>
+      <div id="settings-members-list"></div>
+      <button type="button" class="btn-dashed" id="btn-add-member-settings">+ Tambah anggota</button>
+    </div>
+
+    <!-- tab: Tampilan -->
+    <div class="settings-tab-panel" data-tab="tampilan" style="display:none;">
+      <div class="settings-avatar-row" id="settings-group-avatar-row">
+        <div class="settings-avatar-preview group" id="settings-group-avatar-preview"></div>
+        <button type="button" class="btn-secondary">Ubah foto grup</button>
+      </div>
+      <div id="settings-group-name-row">
+        <label>Nama grup</label>
+        <input type="text" id="settings-group-name">
+      </div>
+
+      <div class="settings-section-title">Latar belakang chat</div>
+      <div class="settings-bg-preview" id="settings-bg-preview"></div>
+      <div class="settings-bg-row">
+        <button type="button" class="btn-secondary" id="btn-upload-bg">Pilih gambar</button>
+        <button type="button" class="btn-secondary" id="btn-remove-bg">Hapus latar</button>
+      </div>
+      <label>Transparansi latar</label>
+      <input type="range" id="settings-bg-opacity" min="10" max="100" value="100">
+
+      <div class="settings-section-title">Font</div>
+      <label>Jenis huruf</label>
+      <select id="settings-font-family">
+        <option value="system">Standar</option>
+        <option value="serif">Serif</option>
+        <option value="rounded">Rounded</option>
+        <option value="mono">Monospace</option>
+      </select>
+      <label>Ukuran huruf</label>
+      <input type="range" id="settings-font-size" min="12" max="20" value="15">
+
+      <div class="settings-section-title">Warna bubble milikmu</div>
+      <div class="bubble-mode-row">
+        <select id="settings-bubble-mode" style="flex:1;">
+          <option value="solid">Warna polos</option>
+          <option value="gradient">Gradient campuran</option>
+        </select>
+      </div>
+      <div class="bubble-color-row">
+        <input type="color" id="settings-bubble-c1">
+        <div class="settings-info-line" style="margin:0;">Warna 1</div>
+      </div>
+      <div class="bubble-color-row" id="settings-bubble-c2-row">
+        <input type="color" id="settings-bubble-c2">
+        <div class="settings-info-line" style="margin:0;">Warna 2</div>
+      </div>
+      <div class="bubble-preview" id="settings-bubble-preview">Contoh bubble</div>
+
+      <div class="settings-section-title">Warna aksi (hapus, dsb)</div>
+      <div class="action-color-row">
+        <input type="color" id="settings-action-color">
+        <div class="settings-info-line" style="margin:0;">Dipakai untuk aksesori tombol aksi di chat ini</div>
+      </div>
+    </div>
+
+    <div class="settings-footer-actions">
+      <button class="btn-secondary" id="btn-chat-export">Ekspor chat ini</button>
+      <button class="btn-secondary" id="settings-close">Tutup</button>
+    </div>
+
+    <input type="file" id="settings-role-avatar-input" accept="image/*" style="display:none">
+    <input type="file" id="settings-bg-input" accept="image/*" style="display:none">
+  </div>
+</div>
+
+<!-- pengaturan aplikasi (global) -->
+<div id="modal-app-settings" class="modal-overlay">
+  <div class="modal-sheet form-sheet">
+    <h3>Pengaturan Aplikasi</h3>
+    <div class="settings-section-title">Cadangan data</div>
+    <div class="form-actions" style="margin-top:0;">
+      <button class="btn-secondary" id="btn-export-all">Ekspor semua chat</button>
+      <button class="btn-secondary" id="btn-import-all">Impor chat</button>
+    </div>
+    <div class="settings-info-line">Semua data hanya tersimpan di HP ini. Cadangkan secara berkala supaya tidak hilang jika aplikasi dihapus.</div>
+
+    <div class="settings-section-title">Warna aksi default</div>
+    <div class="action-color-row">
+      <input type="color" id="app-settings-action-color">
+      <div class="settings-info-line" style="margin:0;">Dipakai sebagai warna awal untuk chat yang baru dibuat</div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" id="app-settings-close" style="flex:1;">Tutup</button>
+    </div>
+    <input type="file" id="import-file-input" accept="application/json" style="display:none">
+  </div>
+</div>
+
+<!-- viewer media fullscreen -->
+<div class="media-viewer" id="media-viewer">
+  <button class="media-viewer-close" id="media-viewer-close"><svg viewBox="0 0 24 24"><path d="M6.4 5L5 6.4 10.6 12 5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4 17.6 5 12 10.6z"/></svg></button>
   <div class="media-viewer-stage" id="media-viewer-stage"></div>
 </div>
 
-<script src="app.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/state.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/home.js"></script>
+<script src="js/chatCreate.js"></script>
+<script src="js/chatView.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/media.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/dataTransfer.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,55 @@
+/* ===================================================================
+   dark.css — override mode gelap (lintas semua komponen)
+   =================================================================== */
+
+body.dark{
+  --bg:#18191b;
+  --text:#e4e6eb;
+  --muted:#a8abb2;
+  --border:#383a3f;
+  --grey-bubble:#3a3d42;
+  background:var(--bg); color:var(--text);
+}
+body.dark .icon-btn{background:#2a2d31;}
+body.dark .icon-btn:active{background:#33363b;}
+body.dark .chat-row:active{background:#23262a;}
+body.dark .chat-row-body{border-bottom-color:#2a2d31;}
+body.dark .modal-overlay{background:rgba(0,0,0,.6);}
+body.dark .modal-sheet{background:#242526;}
+body.dark .sheet-option:not(.danger){background:#2a2d31;}
+body.dark .sheet-option.danger:active{filter:brightness(.8);}
+body.dark .sheet-option:not(.danger):active{background:#33363b;}
+body.dark .form-sheet input[type=text],
+body.dark .form-sheet textarea,
+body.dark .form-sheet select,
+body.dark .color-custom-input{background:#2a2d31; color:var(--text);}
+body.dark .btn-secondary{background:#2a2d31; color:var(--text);}
+body.dark .bio-banner{background:#2a2d31;}
+body.dark .reply-preview-bar{background:#2a2d31;}
+body.dark .reply-preview-remove{background:#33363b; color:var(--muted);}
+body.dark .media-preview-bar{background:#2a2d31;}
+body.dark .media-preview-thumb{background:#33363b;}
+body.dark .composer input{background:#2a2d31; color:var(--text);}
+body.dark .composer input::placeholder{color:var(--muted);}
+body.dark .msg-row.other .voice-play-btn{background:rgba(255,255,255,.12); color:var(--text);}
+
+body.dark .home-tab-btn{background:#2a2d31;}
+body.dark .home-search-bar input{background:#2a2d31; color:var(--text);}
+body.dark .stats-card{background:#2a2d31;}
+body.dark .stats-bar-track{background:#2a2d31;}
+
+body.dark .chat-search-bar{background:#2a2d31;}
+body.dark .chat-search-bar input{background:#1c1e21; color:var(--text);}
+body.dark .chat-search-nav{background:#33363b; color:var(--text);}
+body.dark .load-more-btn{background:#2a2d31; color:var(--text);}
+body.dark .msg-reaction{background:#3a3d42; color:var(--text);}
+
+body.dark .settings-tab-btn{background:#2a2d31;}
+body.dark .role-card{background:#2a2d31;}
+body.dark .role-name-input, body.dark .role-bio-input{background:#1c1e21; color:var(--text); border-color:#3a3d42;}
+body.dark .settings-bg-preview{background-color:#2a2d31;}
+
+body.dark .dropdown-menu{background:#242526; box-shadow:0 6px 24px rgba(0,0,0,.5);}
+body.dark .dropdown-item:active{background:#33363b;}
+body.dark .dropdown-item.active{background:#1c3557;}
+body.dark .dropdown-item-tag{background:#33363b; color:var(--muted);}

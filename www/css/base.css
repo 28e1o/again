@@ -1,0 +1,161 @@
+/* ===================================================================
+   base.css — reset, variabel warna, layout layar, tombol & form umum
+   =================================================================== */
+
+:root{
+  --blue:#0084ff;
+  --grey-bubble:#e4e6eb;
+  --bg:#ffffff;
+  --text:#050505;
+  --muted:#65676b;
+  --border:#e5e5e5;
+  --danger:#fa383e;
+  --action-color:#e5555f;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{
+  margin:0; padding:0; height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--text);
+  overscroll-behavior:none;
+}
+button{font-family:inherit;}
+
+.screen{
+  position:fixed; inset:0;
+  display:none; flex-direction:column;
+  background:var(--bg);
+}
+.screen.active{display:flex;}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 14px 10px 14px;
+  padding-top:calc(14px + env(safe-area-inset-top));
+  flex-shrink:0;
+}
+.topbar h1{font-size:28px; margin:0; font-weight:800;}
+.topbar-actions{display:flex; gap:6px;}
+.icon-btn{
+  width:38px; height:38px; border-radius:50%;
+  border:none; background:#f0f2f5;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative;
+}
+.icon-btn svg{width:19px; height:19px; fill:var(--text);}
+.icon-btn:active{background:#dfe3e8;}
+
+/* ---------- fab ---------- */
+.fab{
+  position:fixed; right:20px; bottom:28px;
+  width:56px; height:56px; border-radius:50%;
+  background:var(--blue); color:#fff; border:none;
+  font-size:30px; line-height:56px; text-align:center; padding:0;
+  box-shadow:0 3px 10px rgba(0,0,0,.25); cursor:pointer; z-index:5;
+}
+.fab:active{background:#0069cc;}
+
+/* ---------- modals (generik) ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:none; align-items:flex-end; justify-content:center;
+  z-index:50;
+}
+.modal-overlay.active{display:flex;}
+.modal-sheet{
+  background:#fff; width:100%; max-width:480px;
+  border-radius:16px 16px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  animation:slideup .18s ease-out;
+}
+@keyframes slideup{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.modal-sheet h3{margin:4px 0 14px 0; font-size:18px;}
+.sheet-option{
+  width:100%; display:flex; align-items:center; gap:14px;
+  background:#f7f8fa; border:none; border-radius:12px;
+  padding:12px 14px; margin-bottom:10px; text-align:left; cursor:pointer;
+}
+.sheet-option:active{background:#eceef1;}
+.sheet-icon{font-size:24px;}
+.sheet-option b{display:block; font-size:15px;}
+.sheet-option small{color:var(--muted); font-size:12.5px;}
+.sheet-cancel{
+  width:100%; padding:12px; border:none; background:none;
+  color:var(--blue); font-weight:700; font-size:15px; margin-top:4px; cursor:pointer;
+}
+.sheet-option.danger{
+  background: var(--action-color);
+  justify-content: center;
+  text-align: center;
+}
+.sheet-option.danger:active{ filter: brightness(.88); }
+.sheet-option.danger .sheet-icon{ display:none; }
+.sheet-option.danger b{ color:#fff; font-size:15.5px; }
+
+.form-sheet label{
+  display:block; font-size:12.5px; color:var(--muted);
+  margin:12px 0 5px 2px; font-weight:600;
+}
+.form-sheet input[type=text]{
+  width:100%; padding:11px 12px; border-radius:10px;
+  border:1px solid var(--border); font-size:15px; background:#f7f8fa;
+}
+.form-sheet input[type=text]:focus{outline:2px solid var(--blue); border-color:transparent;}
+.form-sheet textarea, .form-sheet select{
+  width:100%; padding:11px 12px; border-radius:10px;
+  border:1px solid var(--border); font-size:15px; background:#f7f8fa;
+  font-family:inherit; resize:vertical;
+}
+.form-sheet textarea:focus, .form-sheet select:focus{outline:2px solid var(--blue); border-color:transparent;}
+.settings-info-line{font-size:12.5px; color:var(--muted); margin:8px 2px 4px 2px;}
+
+.color-picker{display:flex; gap:10px; flex-wrap:wrap; margin-top:2px;}
+.color-dot{width:32px; height:32px; border-radius:50%; cursor:pointer; border:3px solid transparent; flex-shrink:0;}
+.color-dot.selected{border-color:#111;}
+.color-dot.small{width:22px; height:22px;}
+.color-custom-input{
+  margin-top:8px; width:100%; height:38px; border:1px solid var(--border);
+  border-radius:10px; padding:2px; background:#f7f8fa;
+}
+
+.form-actions{display:flex; gap:10px; margin-top:20px;}
+.btn-primary, .btn-secondary{
+  flex:1; padding:12px; border-radius:10px; border:none;
+  font-size:15px; font-weight:700; cursor:pointer;
+}
+.btn-primary{background:var(--blue); color:#fff;}
+.btn-primary:active{background:#0069cc;}
+.btn-secondary{background:#f0f2f5; color:var(--text);}
+
+.member-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.member-row input{flex:1;}
+.member-remove{
+  width:32px; height:32px; border-radius:50%; border:none;
+  background:#fdeaea; color:var(--danger); font-size:16px; cursor:pointer; flex-shrink:0;
+}
+.btn-add-member, .btn-dashed{
+  width:100%; padding:10px; border-radius:10px; border:1.5px dashed var(--border);
+  background:none; color:var(--blue); font-weight:600; cursor:pointer; margin-top:4px;
+}
+
+/* Dropdown generik (dipakai untuk pilihan peran) */
+.dropdown-menu{
+  display:none; position:absolute; z-index:60;
+  background:#fff; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,.18);
+  padding:6px; min-width:200px; max-height:280px; overflow-y:auto;
+}
+.dropdown-menu.active{display:block;}
+.dropdown-item{
+  width:100%; display:flex; align-items:center; gap:10px;
+  border:none; background:none; padding:9px 8px; border-radius:8px;
+  text-align:left; cursor:pointer;
+}
+.dropdown-item:active{background:#f0f2f5;}
+.dropdown-item.active{background:#eaf2ff;}
+.dropdown-avatar{
+  width:28px; height:28px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12px;
+}
+.dropdown-avatar img{width:100%; height:100%; object-fit:cover;}
+.dropdown-item-name{flex:1; font-size:14px; font-weight:600;}
+.dropdown-item-tag{font-size:10.5px; color:var(--muted); background:#f0f2f5; padding:2px 6px; border-radius:6px;}
