@@ -50,13 +50,13 @@ function capConvertFileSrc(path){
 async function writeTextFile(fileName, text){
   const fs = capFS();
   if(!fs) return;
-  await fs.writeFile({ path: fileName, data: text, directory: 'DATA', encoding: 'UTF8' });
+  await fs.writeFile({ path: fileName, data: text, directory: 'DATA', encoding: 'utf8' });
 }
 
 async function readTextFile(fileName){
   const fs = capFS();
   if(!fs) return null;
-  const res = await fs.readFile({ path: fileName, directory: 'DATA', encoding: 'UTF8' });
+  const res = await fs.readFile({ path: fileName, directory: 'DATA', encoding: 'utf8' });
   return typeof res.data === 'string' ? res.data : null;
 }
 
@@ -241,6 +241,8 @@ async function migrateMediaToFiles(){
   }
 }
 
+let saveErrorAlerted = false;
+
 async function saveState(){
   if(isNative){
     try{
@@ -248,11 +250,20 @@ async function saveState(){
       try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     }catch(e){
       console.error('Gagal menyimpan data', e);
-      alert('Gagal menyimpan: penyimpanan tidak bisa ditulis.');
+      if(!saveErrorAlerted){
+        saveErrorAlerted = true;
+        alert('Gagal menyimpan: penyimpanan tidak bisa ditulis.');
+      }
     }
   } else {
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.chats)); }
-    catch(e){ console.error('Gagal menyimpan data', e); alert('Gagal menyimpan: penyimpanan mungkin penuh (terlalu banyak foto/video besar).'); }
+    catch(e){
+      console.error('Gagal menyimpan data', e);
+      if(!saveErrorAlerted){
+        saveErrorAlerted = true;
+        alert('Gagal menyimpan: penyimpanan mungkin penuh (terlalu banyak foto/video besar).');
+      }
+    }
   }
 }
 
